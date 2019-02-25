@@ -1,0 +1,29 @@
+{
+  "name": "ML-feedback",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "express-generator": "^4.16.0"
+  },
+  "devDependencies": {
+    "concurrently": "^4.1.0"
+  },
+  "scripts": {
+    "client": "cd client && npm start",
+    "server": "cd server && npm start",
+    "start": "concurrently -kill-others \"npm run server\" \"npm run client\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TerrenceCKCHAN/ML-feedback.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TerrenceCKCHAN/ML-feedback/issues"
+  },
+  "homepage": "https://github.com/TerrenceCKCHAN/ML-feedback#readme"
+}
