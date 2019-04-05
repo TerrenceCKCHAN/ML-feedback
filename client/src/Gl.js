@@ -1,16 +1,18 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 
 class Gl extends React.Component {
 
     constructor(props) {
         super(props);
         this.main = this.main.bind(this);
+        this.glCanvas = React.createRef();
     }
 
     main() {
-        const canvas = document.querySelector("#glCanvas");
+        // const canvas = <canvas id="glCanvas" width="640" height="480"/>;
         // Initialize the GL context
-        //const gl = canvas.getContext("webgl");
+        // const gl = canvas.getContext("webgl");
       
         // Only continue if WebGL is available and working
         // if (gl === null) {
@@ -28,15 +30,11 @@ class Gl extends React.Component {
         return (
             <div>
               <h1>This is Gl</h1>
-              {/* <canvas id="glCanvas" width="640" height="480"></canvas> */}
-              {/* {this.main()} */}
+              {/* <canvas ref={this.glCanvas} id="glCanvas" width="640" height="480"></canvas> */}
+              {this.main()}
             </div>
         )
     }
 }
-
-
-
-
 
 export default Gl;

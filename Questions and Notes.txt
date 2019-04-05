@@ -1,0 +1,26 @@
+How does the shader lab framework connect to shader programs and how does it run them
+
+WebGL vs OpenGL
+
+Web GL can do immediate feedback, state machine translating outputs
+
+
+
+
+In c make gui
+cmake list
+configure, select vscode version
+Put in path, build directory, 
+
+
+build on rel with dev info -> compile
+
+
+possible errors, ammended shaderlab framework, intensities, position light sources (For phong shading), colours, not too much on default parameters
+combination of errors, add contraints, cnn latent representation
+
+
+
+
+
+

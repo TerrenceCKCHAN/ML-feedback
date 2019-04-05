@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Gl from './Gl';
 import logo from './logo.svg';
 import './App.css';
+import ThreeExp from './ThreeExp';
 
 class App extends Component {
   render() {
@@ -13,6 +14,7 @@ class App extends Component {
             Edit <code>src/App.js</code> and save to reload.
           </p>
           <Gl/>
+          <ThreeExp/>
           <a
             className="App-link"
             href="https://reactjs.org"

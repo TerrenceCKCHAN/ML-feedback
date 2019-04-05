@@ -2,9 +2,12 @@ const express = require('express')
 const app = express()
 const port = 3001
 
-app.get('/', (req, res) => res.send("Hello World"))
+const obj = require('./teapot-claraio.json')
+app.get('/', (req, res) => res.send(obj))
 app.get('/terrence', (req, res) => res.send("hi noel"))
-//app.listen(port, () => console.log(`Server is running on port ${port}!`))
+
+
+// app.listen(port, () => console.log(`Server is running on port ${port}!`))
 
 module.exports = app;
 
