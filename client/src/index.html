@@ -77,39 +77,29 @@
             
             camera.position.y = 2;
             camera.position.z = 10;
-
+            
+            var i = 0;
             function animate() {
                 cube.rotation.x += 0.01;
                 cube.rotation.y += 0.01;
     	        requestAnimationFrame( animate );
-	            renderer.render( scene, camera );
+                renderer.render( scene, camera );
+                
+                if (i == 0) {
+                    var canvas = renderer.view;
+                    var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
+                    window.location.href = image;
+                }
+                
+
             }
             animate();
             
-            // var exporter = new THREE.GLTFExporter();
-            // var sceneJSON = JSON.stringify(exporter.parse(scene));
-            // console.log(sceneJSON);
-            
-            // var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            // imgData = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            // window.location.href = imgData;
+
 
 
 
         </script>
-        
-        <script>
-            // var canvas = document.getElementById("the_canvas");
-            // var context = canvas.getContext("experimental-webgl", {preserveDrawingBuffer: true});
-            // var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-
-
-            // // var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-            // window.location.href = image;
-        </script>
-
-
-        <!-- <img src="Image1.png" id='cimg'> -->
         
         
 	</body>
