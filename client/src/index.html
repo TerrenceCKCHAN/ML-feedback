@@ -78,6 +78,29 @@
             camera.position.y = 2;
             camera.position.z = 10;
             
+            
+            function postImage(image) {
+                fetch('http://localhost:3001/post' , {
+                    mode: "no-cors",
+                    method: 'post',
+                    headers: {
+                        // "Content-Type": "application/json"
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: JSON.stringify({image})
+                    // body: JSON.stringify({
+                    //     description: 'Posting image',
+                    //     public: true,
+                    //     files: {
+                    //         'img.png': {
+                    //             content: null
+                    //         }
+                    //     }
+                    // })
+                })
+                .catch(err => console.error('Caught Error: ' + err))
+            }
+
             var i = 0;
             function animate() {
                 cube.rotation.x += 0.01;
@@ -86,12 +109,14 @@
                 renderer.render( scene, camera );
                 
                 if (i == 0) {
-                    var canvas = renderer.view;
+                    var canvas = document.getElementById('the_canvas');
+                    // var canvas = renderer.view;
                     var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-                    window.location.href = image;
+                    postImage(image);
+                    // window.location.href = image;
+                    ++i;
                 }
                 
-
             }
             animate();
             

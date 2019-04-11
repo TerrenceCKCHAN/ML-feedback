@@ -1,10 +1,31 @@
 const express = require('express')
 const app = express()
+const bodyParser = require('body-parser')   
 const port = 3001
+const fs = require('fs')
 
 const obj = require('./teapot-claraio.json')
+
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
 app.get('/', (req, res) => res.send(obj))
 app.get('/terrence', (req, res) => res.send("hi noel"))
+
+app.post("/post", (req, res) => {handlePhoto(req.body)}) 
+
+function handlePhoto(body) {
+    var stream = parsePhoto(Object.keys(body)[0]);
+    fs.writeFile('training.png', stream, (err) => {
+        if (err) {console.log(err);} else {console.log("Success")}
+    })
+}
+
+function parsePhoto(body) {
+    return body.substring(1, body.length - 1);
+}
 
 
 // app.listen(port, () => console.log(`Server is running on port ${port}!`))
