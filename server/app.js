@@ -18,13 +18,22 @@ app.post("/post", (req, res) => {handlePhoto(req.body)})
 
 function handlePhoto(body) {
     var stream = parsePhoto(Object.keys(body)[0]);
-    fs.writeFile('training.png', stream, (err) => {
+    console.log(stream);
+    var buf = new Buffer.from(stream, 'base64');
+    fs.writeFile('training.png', buf, (err) => {
         if (err) {console.log(err);} else {console.log("Success")}
     })
 }
 
 function parsePhoto(body) {
-    return body.substring(1, body.length - 1);
+    var photoStr = body.substring(1, body.length - 1);
+    photoStr     = photoStr.substring(photoStr.indexOf(":") + 2, photoStr.length - 1);
+    return photoStr.replace(/^data:image\/\w+\-\w+;base64,/, "");
+    // "data:image/octet-stream;base64".replace(/^data:image\/\w+\-\w+;base64/, "");
+    // replace(/^data:image\/\w+;base64,/, "")
+    // var image    = new Image();
+    // image.src    = photoStr;
+    // return photoStr;
 }
 
 

@@ -67,7 +67,7 @@
 
             var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
             renderer.setSize( window.innerWidth, window.innerHeight );
-            renderer.domElement.id = 'the_canvas'
+            renderer.domElement.id = 'the_canvas';
             document.body.appendChild( renderer.domElement );
             
             var geometry = new THREE.BoxGeometry( 1, 1, 1 );
@@ -109,11 +109,12 @@
                 renderer.render( scene, camera );
                 
                 if (i == 0) {
-                    var canvas = document.getElementById('the_canvas');
-                    // var canvas = renderer.view;
+                    // var canvas = document.getElementById('the_canvas');
+                    var canvas = renderer.domElement;
+                    // var image = canvas.toDataURL("image/png")
                     var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
-                    postImage(image);
-                    // window.location.href = image;
+                    // postImage(image);
+                    window.location.href = image;
                     ++i;
                 }
                 
