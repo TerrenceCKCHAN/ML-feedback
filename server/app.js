@@ -29,8 +29,9 @@ function parsePhoto(body) {
     var photoStr = body.substring(1, body.length - 1);
     photoStr     = photoStr.substring(photoStr.indexOf(":") + 2, photoStr.length - 1);
     return photoStr.replace(/^data:image\/\w+\-\w+;base64,/, "");
+    // return photoStr.replace(/^data:image\/\w+;base64,/, "");
     // "data:image/octet-stream;base64".replace(/^data:image\/\w+\-\w+;base64/, "");
-    // replace(/^data:image\/\w+;base64,/, "")
+    
     // var image    = new Image();
     // image.src    = photoStr;
     // return photoStr;
