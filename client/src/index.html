@@ -112,15 +112,14 @@
                 renderer.render( scene, camera );
                 
                 if (i == 0) {
-                    // renderer.render( scene, camera );
                     var imageData = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");
-                    // postImage(imageData);
-                    window.location.href = imageData;
+                    console.log(imageData);
+                    postImage(imageData);
+                    // window.location.href = imageData;
                     ++i;
                 }
                 
             }
-            // animate();
             
 
 

@@ -28,7 +28,10 @@ function handlePhoto(body) {
 function parsePhoto(body) {
     var photoStr = body.substring(1, body.length - 1);
     photoStr     = photoStr.substring(photoStr.indexOf(":") + 2, photoStr.length - 1);
-    return photoStr.replace(/^data:image\/\w+\-\w+;base64,/, "");
+    photoStr     = photoStr.replace(/^data:image\/\w+\-\w+;base64,/, "");
+    // Replaces all white spaces globally with +
+    photoStr     = photoStr.replace(/\s/g, "+");
+    return photoStr;
     // return photoStr.replace(/^data:image\/\w+;base64,/, "");
     // "data:image/octet-stream;base64".replace(/^data:image\/\w+\-\w+;base64/, "");
     
