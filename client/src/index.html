@@ -33,7 +33,8 @@
         
         <script id="canvas">	
 
-            var loader = new THREE.ObjectLoader();
+            var manager = new THREE.LoadingManager(animate);
+            var loader = new THREE.ObjectLoader(manager);
             var scene = new THREE.Scene();
             loader.load('teapot3.json', function(obj) {
                 applyMaterials(obj);
@@ -65,7 +66,7 @@
 
             var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-            var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true, needsUpdate: true});
+            var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
             renderer.setSize( window.innerWidth, window.innerHeight );
             renderer.domElement.id = 'the_canvas';
             document.body.appendChild( renderer.domElement );
@@ -78,7 +79,8 @@
             camera.position.y = 2;
             camera.position.z = 10;
             
-            
+
+            // API to postImage to server
             function postImage(image) {
                 fetch('http://localhost:3001/post' , {
                     mode: "no-cors",
@@ -100,7 +102,8 @@
                 })
                 .catch(err => console.error('Caught Error: ' + err))
             }
-
+            
+            // Scene rendering starts upon completion of loading
             var i = 0;
             function animate() {
                 cube.rotation.x += 0.01;
@@ -109,15 +112,15 @@
                 renderer.render( scene, camera );
                 
                 if (i == 0) {
-                    renderer.render( scene, camera );
+                    // renderer.render( scene, camera );
                     var imageData = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");
-                    // postImage(image);
+                    // postImage(imageData);
                     window.location.href = imageData;
                     ++i;
                 }
                 
             }
-            animate();
+            // animate();
             
 
 
