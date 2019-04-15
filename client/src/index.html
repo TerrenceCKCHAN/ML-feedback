@@ -144,6 +144,11 @@
                 })
                 .catch(err => console.error('Caught Error: ' + err))
             }
+            function generateTrainingData() {
+                var imageData = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");
+                console.log(imageData);
+                postImage(imageData);
+            }
             
             // Scene rendering starts upon completion of loading
             var i = 0;
@@ -153,14 +158,17 @@
     	        requestAnimationFrame( animate );
                 renderer.render( scene, camera );
                 
-                if (i == 0) {
-                    var imageData = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");
-                    console.log(imageData);
-                    postImage(imageData);
+                while (i < 100) {
+                    generateTrainingData();
+                    sleep(5);
                     // window.location.href = imageData;
                     ++i;
                 }
                 
+            }
+
+            const sleep = (ms) => {
+                return new Promise(resolve => setTimeout(resolve, ms))
             }
             
 
