@@ -50,6 +50,7 @@
 
 
 
-vec3 l = normalize(vec3(lightPosition_camSpace) - position);
+
 vec3 n = normalMatrix * vec3(cameraPosition);
 float nDotL = max(0.0, dot(n, l));
+gl_FragColor = vec4(ka * ambientColour + kd * nDotL * diffuseColour, 1.0);

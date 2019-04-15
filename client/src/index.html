@@ -16,6 +16,9 @@
         <script type="x-shader/x-vertex" id="vertexShader">
             varying mat4 mvMatrix; 
             varying mat4 pMatrix;
+            varying mat3 nMatrix;
+            varying vec3 normalInterpolation;
+            varying vec3 vertexPosition;
             
             void main() 
             {
@@ -23,29 +26,48 @@
                 gl_Position = projectionMatrix * modelViewPosition;
                 mvMatrix = modelViewMatrix;
                 pMatrix  = projectionMatrix;
+                nMatrix = normalMatrix;
+                normalInterpolation = normalMatrix * normal;
+                vertexPosition = vec3(modelViewPosition) / modelViewPosition.w;
             }
         </script>
 
         <script type="x-shader/x-fragment" id="fragmentShader">
             varying mat4 mvMatrix;
             varying mat4 pMatrix;
+            varying mat3 nMatrix;
+            varying vec3 normalInterpolation;
+            varying vec3 vertexPosition;
+            float ka  = 0.2;
+            float kd  = 0.5;
+            float ks  = 0.5;
+            float shininess = 10.0;
+            vec3 ambientColour = vec3(1,0,0);
+            vec3 diffuseColour = vec3(1,0,0);
+            vec3 specularColour = vec3(1,0,0);
 
             void main() {
+                vec4 lightPosition = vec4(6,4,3,0);
+                vec4 lPos_camSpace = pMatrix * mvMatrix * lightPosition;
+                vec4 fragPos_camSpace = pMatrix * mvMatrix * gl_FragCoord;
 
-                float ambientCoefficient  = 1.0;
-                float diffuseCoefficient  = 1.0;
-                float specularCoefficient = 1.0;
-                
-                vec4 lightPosition_camSpace = vec4(6,4,3,0);
-                vec3 l = normalize(vec3(lightPosition_camSpace) - vec3(gl_FragCoord));
+                // Diffuse Component
+                vec3 l = normalize(vec3(lPos_camSpace) - vec3(fragPos_camSpace));
+                vec3 n = normalize(normalInterpolation);
+                float nDotL = max(0.0, dot(n,l));
 
+                // Specular Component
+                vec3 r = reflect(-l, n);
+                vec3 v = normalize(cameraPosition - vec3(fragPos_camSpace));
+                float rDotV = max(0.0, dot(r, v));
                 
                 
-                
-
-                vec4 exp = vec4(0,0,0,0);
-                
-                gl_FragColor = vec4(1, 0.5, 0.76, 1.0);
+                gl_FragColor = 
+                vec4(
+                ka * ambientColour + 
+                kd * nDotL * diffuseColour +
+                ks * pow(rDotV, shininess) * specularColour
+                , 1.0);
             }
         </script>
         
@@ -81,7 +103,7 @@
             // scene.add(light);
             
             var pointLight = new THREE.PointLight(0xfffff,0.5);
-            // scene.add(pointLight);
+            scene.add(pointLight);
 
             var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
