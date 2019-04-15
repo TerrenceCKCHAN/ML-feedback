@@ -38,16 +38,16 @@
             varying mat3 nMatrix;
             varying vec3 normalInterpolation;
             varying vec3 vertexPosition;
-            float ka  = 0.2;
-            float kd  = 0.5;
-            float ks  = 1.0;
-            float shininess = 10.0;
+            float ka  = 0.3;
+            float kd  = 0.6;
+            float ks  = 0.9;
+            float shininess = 30.0;
             vec3 ambientColour = vec3(1,0,0);
             vec3 diffuseColour = vec3(1,0,0);
-            vec3 specularColour = vec3(1,0,0);
+            vec3 specularColour = vec3(1,1,1);
 
             void main() {
-                vec4 lightPosition = vec4(0,2,10,0);
+                vec4 lightPosition = vec4(5,3,6,0);
                 vec4 lPos_camSpace = pMatrix * mvMatrix * lightPosition;
                 vec4 fragPos_camSpace = pMatrix * mvMatrix * gl_FragCoord;
 
@@ -77,14 +77,14 @@
             var manager = new THREE.LoadingManager(animate);
             var loader = new THREE.ObjectLoader(manager);
             var scene = new THREE.Scene();
-            loader.load('teapot3.json', function(obj) {
+            loader.load('teapot-claraio.json', function(obj) {
                 applyMaterials(obj);
                 scene.add(obj);
             })
 
             function addShaderMaterials() {
                 return new THREE.ShaderMaterial({
-                    wireframe: true,
+                    // wireframe: true,
                     vertexShader: document.getElementById('vertexShader').textContent,
                     fragmentShader: document.getElementById('fragmentShader').textContent,
                 });
@@ -118,8 +118,8 @@
             var cube = new THREE.Mesh( geometry, material );
             // scene.add( cube );
             
-            camera.position.y = 2;
-            camera.position.z = 10;
+            camera.position.y = 1;
+            camera.position.z = 3;
             
 
             // API to postImage to server
