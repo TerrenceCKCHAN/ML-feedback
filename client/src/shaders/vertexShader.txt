@@ -1,0 +1,16 @@
+varying mat4 mvMatrix; 
+varying mat4 pMatrix;
+varying mat3 nMatrix;
+varying vec3 normalInterpolation;
+varying vec3 vertexPosition;
+
+void main()
+{
+vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+gl_Position = projectionMatrix * modelViewPosition;
+mvMatrix = modelViewMatrix;
+pMatrix  = projectionMatrix;
+nMatrix = normalMatrix;
+normalInterpolation = normalMatrix * normal;
+vertexPosition = vec3(modelViewPosition) / modelViewPosition.w;
+}

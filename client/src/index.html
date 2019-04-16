@@ -13,7 +13,7 @@
         <script src="js/three.js"></script>
         <!-- <script src="js/libs/loaders/XLoader.js"></script> -->
         
-        <script type="x-shader/x-vertex" id="vertexShader">
+        <script type="x-shader/x-vertex" id="vertexShader" data-src="vertexShader.js">
             varying mat4 mvMatrix; 
             varying mat4 pMatrix;
             varying mat3 nMatrix;
@@ -74,26 +74,42 @@
         
         <script id="canvas">	
 
-            var manager = new THREE.LoadingManager(animate);
-            var loader = new THREE.ObjectLoader(manager);
             var scene = new THREE.Scene();
-            loader.load('teapot-claraio.json', function(obj) {
-                applyMaterials(obj);
-                scene.add(obj);
-            })
 
-            function addShaderMaterials() {
+            loadAll()
+            function loadAll() {
+                var fileLoader = new THREE.FileLoader(fileManager);
+                var fileManager = new THREE.LoadingManager(loadModels);
+                var vShader;
+                var sShader;
+                fileLoader.load("./shaders/vertexShader.txt", function(data) {loadModels(data);});
+            }
+
+            function loadModels(vShader) {
+                var manager = new THREE.LoadingManager(animate);
+                var loader = new THREE.ObjectLoader(manager);
+                
+                loader.load('teapot-claraio.json', function(obj) {
+                    applyMaterials(obj, vShader);
+                    scene.add(obj);
+                })
+            }
+
+
+            
+
+            function addShaderMaterials(vShader) {
                 return new THREE.ShaderMaterial({
                     // wireframe: true,
-                    vertexShader: document.getElementById('vertexShader').textContent,
+                    vertexShader: vShader,
                     fragmentShader: document.getElementById('fragmentShader').textContent,
                 });
             }
 
-            function applyMaterials(obj) {
+            function applyMaterials(obj, vShader) {
                 obj.traverse(function(child) {
                 if (child instanceof THREE.Mesh){
-                    child.material = addShaderMaterials();
+                    child.material = addShaderMaterials(vShader);
                 }
                 obj.needsUpdate=true;
                 });
