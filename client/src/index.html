@@ -52,17 +52,17 @@
             vec3 ambientColour;
             vec3 diffuseColour;
             vec3 specularColour;
-            float seed;
+            
 
-            float rnd() {
-                seed = (mod(seedX * 1364.0 + 626.0, 509.0));
+            float rnd(float seed) {
+                seed = (mod(seed * 1364.0 + 626.0, 509.0));
                 return seed / 509.0;
             }
 
 
             void main() {
-                ambientColour = vec3(1,0,0);
-                diffuseColour = vec3(0,rnd(),0);
+                ambientColour = vec3(rnd(rnd(seedX)),rnd(seedX), rnd(rnd(rnd(seedX))));
+                diffuseColour = vec3(rnd(seedX),rnd(rnd(rnd(seedX))), rnd(rnd(seedX)));
                 specularColour = vec3(1,1,1);
 
 
@@ -96,11 +96,7 @@
             var scene = new THREE.Scene();
             var shaderId = 0;
             
-            var i = 0;
-            while (i < 1) {
-                loadModels("1","1");
-                ++i;
-            }
+
 
 
             
@@ -115,7 +111,7 @@
 
 
             function loadModels(vShader, fShader) {
-                var manager = new THREE.LoadingManager(animate);
+                var manager = new THREE.LoadingManager(renderAndPost);
                 var loader = new THREE.ObjectLoader(manager);
                 
                 loader.load('teapot-claraio.json', function(obj) {
@@ -139,7 +135,7 @@
                 
                 return new THREE.ShaderMaterial({
                     uniforms: {
-                        seed: {value: 1.0},
+                        seed: {value: vShader},
                     },
                     // wireframe: true, 
                     vertexShader: document.getElementById('vertexShader').textContent,
@@ -203,26 +199,30 @@
             
             // Scene rendering starts upon completion of loading
             
+            function renderAndPost() {
+                renderer.render( scene, camera );
+                sleep(5);
+                generateTrainingData();
+            }
+            
+            var i = 0;
             function animate() {
                 // cube.rotation.x += 0.01;
                 // cube.rotation.y += 0.01;
-    	        requestAnimationFrame( animate );
-                renderer.render( scene, camera );
-                
-                generateTrainingData();
-                sleep(5);
-                    
-                
+                requestAnimationFrame( animate );
+                loadModels(i,"1");
+                ++i;
+
                 // window.location.href = imageData;
                     
                 
                 
             }
+            animate();
 
             const sleep = (ms) => {
                 return new Promise(resolve => setTimeout(resolve, ms))
             }
-            
 
 
         </script>
