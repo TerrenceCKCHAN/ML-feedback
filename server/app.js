@@ -25,7 +25,8 @@ function storeTrainingData(body) {
         console.log("Generation of training data complete");
     }
     if (trainingId < trainingSize) {
-        handlePhoto(body);
+        // parse and save photo to the server
+        // handlePhoto(body);
         trainingId += 1;
     }
 }
@@ -47,6 +48,52 @@ function parsePhoto(body) {
     photoStr     = photoStr.replace(/\s/g, "+");
     return photoStr;
 }
+
+
+// Image Preprocessing
+// Resize and apply normalization to training data
+const jimp = require('jimp');
+
+
+function preprocessPhoto(c, t_id) {
+    let imgRaw = 'training_data/raw/class_' + c + '/training_' + t_id + '.png';
+    let imgActive = 'training_data/active/class_' + c + '/training_' + t_id + '.png';
+    let imgExported = 'training_data/export/class_' + c + '/training_' + t_id + '.png';
+
+    jimp.read(imgRaw)
+    .then(img => (img.clone().write(imgActive)))
+    .then(() => jimp.read(imgActive))
+    .then(img => {return img.resize(100,100);})
+    .then(img => {return img.crop(20,25,62,62);})
+    .then(img => img.resize(100,100))
+    .then(img => img.normalize())
+    // .then(img => img.grayscale())
+    .then(img => img.write(imgExported))
+    .then(() => console.log('Exported file to: ' + imgExported))
+    .catch(err => console.error(err));
+    console.log(c+': '+t_id);    
+}
+
+function preprocessPhotos(c) {
+    var t_id = 0;
+    while(t_id < trainingSize) {
+        preprocessPhoto(c, t_id);
+        ++t_id;
+    }
+}
+
+// preprocessPhotos(0)
+// preprocessPhotos(1)
+// preprocessPhotos(2)
+// preprocessPhotos(3)
+
+
+
+
+
+
+
+
 
 
 // app.listen(port, () => console.log(`Server is running on port ${port}!`))
