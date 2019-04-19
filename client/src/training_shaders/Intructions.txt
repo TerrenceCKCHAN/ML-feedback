@@ -1,0 +1,14 @@
+VertexShader and FragmentShader are the skeleton of the working phong shading model
+
+vertexShader and fragmentShader 0 are used to generate the ground truth for the phong shading model:
+Alternating colour and controlled variation of light positions. 
+Note that the random function is not entirely random but determined by the input seed
+
+vertexShader and fragmentShader 1 are in class 1 -> 
+normalInterpolation(n) is not normalized before calculation of n dot l
+
+vertexShader and fragmentShader 2 are in class 2 ->
+No specular component
+
+vertexShader and fragmentShader 3 are in class 3 ->
+No diffuse component

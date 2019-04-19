@@ -59,6 +59,13 @@
                 return seed / 509.0;
             }
 
+            float change_sign(float seed) {
+                if (rnd(seed + 10.0) > 0.5) {
+                    return -rnd(seed);
+                }
+                return rnd(seed);
+            }
+
 
             void main() {
                 ambientColour = vec3(rnd(rnd(seedX)),rnd(seedX), rnd(rnd(rnd(seedX))));
@@ -66,7 +73,7 @@
                 specularColour = vec3(1,1,1);
 
 
-                vec4 lightPosition = vec4(5,3,6,0);
+                vec4 lightPosition = vec4(10.0 * change_sign(seedX),5.0 * rnd(seedX + 1.0),10.0 + 5.0*rnd(seedX),0);
                 vec4 lPos_camSpace = pMatrix * mvMatrix * lightPosition;
                 vec4 fragPos_camSpace = pMatrix * mvMatrix * gl_FragCoord;
                 // Diffuse Component

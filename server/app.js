@@ -16,9 +16,14 @@ app.get('/terrence', (req, res) => res.send("hi noel"))
 
 app.post("/post", (req, res) => {storeTrainingData(req.body);res.send("Created training data: " + trainingId)}) 
 
-var trainingSize = 100;
+var trainingSize = 1000;
 var trainingId = 0;
+var trainingClass = 3;
 function storeTrainingData(body) {
+    console.log(trainingId);
+    if (trainingId == trainingSize - 1) {
+        console.log("Generation of training data complete");
+    }
     if (trainingId < trainingSize) {
         handlePhoto(body);
         trainingId += 1;
@@ -29,7 +34,7 @@ function handlePhoto(body) {
     var stream = parsePhoto(Object.keys(body)[0]);
     // console.log(stream);
     var buf = new Buffer.from(stream, 'base64');
-    fs.writeFile('./training_data/training_' + trainingId + '.png', buf, (err) => {
+    fs.writeFile('./training_data/class_' + trainingClass + '/training_' + trainingId + '.png', buf, (err) => {
         if (err) {console.log(err);} else {console.log("Success")}
     })
 }
