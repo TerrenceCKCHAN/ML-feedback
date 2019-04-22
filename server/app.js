@@ -88,6 +88,30 @@ function preprocessPhotos(c) {
 // preprocessPhotos(3)
 
 
+// Convert Image to Tensors so that we can feed it into our network
+const tf = require('@tensorflow/tfjs-core');
+const util = require('util')
+const {createCanvas, loadImage} = require('canvas');
+
+async function toTensor() {
+    // const image = fs.readFileSync('training_data/export/class_0/training_0.png');
+    // var buf = new Buffer.from(image, 'base64');
+    // tf.fromPixels(image);
+    // console.log(image);
+    const canvas = createCanvas(100,100);
+    const cx = canvas.getContext('2d');
+    const image1 = await loadImage('training_data/export/class_0/training_0.png');
+    console.log(image1);
+    await cx.drawImage(image1,0,0);
+    var tensor = tf.browser.fromPixels(canvas);
+
+
+    // console.log(util.inspect(await tensor.data(), {maxArrayLength:10,compact:true,showHidden: true, depth: null}));
+    
+
+
+}
+toTensor();
 
 
 
