@@ -65,9 +65,9 @@ function preprocessPhoto(c, t_id) {
     .then(() => jimp.read(imgActive))
     .then(img => {return img.resize(100,100);})
     .then(img => {return img.crop(20,25,62,62);})
-    .then(img => img.resize(100,100))
+    .then(img => img.resize(28,28))
     .then(img => img.normalize())
-    // .then(img => img.grayscale())
+    .then(img => img.grayscale())
     .then(img => img.write(imgExported))
     .then(() => console.log('Exported file to: ' + imgExported))
     .catch(err => console.error(err));
@@ -92,6 +92,9 @@ function preprocessPhotos(c) {
 const tf = require('@tensorflow/tfjs-core');
 const util = require('util')
 const {createCanvas, loadImage} = require('canvas');
+const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-diffuse'];
+const NUM_CLASSES = CLASSES.length;
+
 
 async function toTensor() {
     // const image = fs.readFileSync('training_data/export/class_0/training_0.png');
@@ -111,8 +114,120 @@ async function toTensor() {
 
 
 }
-toTensor();
 
+
+
+async function convertImageToData() {
+    var dataArray = [];
+    const canvas = createCanvas(28,28);
+    const cx = canvas.getContext('2d');
+    for (let c = 0; c < trainingClass; ++c) {
+        for(let id = 0; id < trainingSize; ++id) {
+            const image = await loadImage('training_data/export/class_'+c+'/training_'+id+'.png');
+            cx.drawImage(image, 0, 0);
+            const tensorObj = tf.browser.fromPixels(canvas, 1);
+            const values = tensorObj.dataSync();
+            const arr = Array.from(values);
+            arr.push(c);
+            dataArray.push(arr);
+        }
+    }
+    return dataArray;
+    // const canvas = createCanvas(28,28);
+    // const cx = canvas.getContext('2d');
+    // const image1 = await loadImage('training_data/export/class_0/training_0.png');
+    // const image2 = await loadImage('training_data/export/class_0/training_1.png')
+    // await cx.drawImage(image1,0,0);
+    // var tensor = tf.browser.fromPixels(canvas, 1);
+    // const values = tensor.dataSync();
+    // const arr = Array.from(values);
+    // arr.push(0);
+    // // console.log(util.inspect(arr, {maxArrayLength:1000}));
+    // dataArray.push(arr);
+    // await cx.drawImage(image2,0,0);
+    // tensor = tf.browser.fromPixels(canvas, 1);
+    // const values1 = tensor.dataSync();
+    // const arr1 = Array.from(values1);
+
+    // dataArray.push(arr1);
+    // console.log(util.inspect(dataArray, {maxArrayLength:155}));
+
+}
+
+async function gen_train_test_data(split) {
+    
+    const dataByClass = [];
+    const tartgetByClass = [];
+    for (let i = 0; i < NUM_CLASSES; ++i) {
+        dataByClass.push([]);
+        tartgetByClass.push([]);
+    }
+    const teapotData = await convertImageToData();
+    for (const teapot of teapotData) {
+        const target = teapot[teapot.length - 1];
+        const data   = teapot.slice(0, teapot.length - 1);
+        dataByClass[target].push(data);
+        targetByClass[target].push(target);
+    }
+
+    const xTrains = [];
+    const yTrains = [];
+    const xTests  = [];
+    const yTests  = [];
+    for (let c = 0; c < NUM_CLASSES; ++i) {
+        const [xTrain,yTrain,xTest,yTest] = 
+            convertToTensors(dataByClass[c], targetsByClass[c], split);
+        xTrains.push(xTrain);
+        yTrains.push(yTrain);
+        xTests.push(xTest);
+        yTests.push(yTest);
+    }
+
+
+}
+
+
+
+
+const data = [[1,2,3,4],
+              [2,2,3,4],
+              [3,2,3,4],
+              [4,2,3,4],
+              [6,2,3,4],
+              [7,2,3,4],
+              [8,2,3,4],
+              [3,2,3,4],
+              [5,3,4,2],
+              [10,10,10,10]];
+
+const targets = [0,0,0,0,1,1,2,2,3,3];
+// const [xtr,ytr,xte,yte] = convertToTensors(data, targets, 0.2);
+// console.log(ytr)
+// console.log(yte);
+
+function convertToTensors(data, targets, testSplit) {
+    const numExamples = data.length;
+    if (numExamples !== targets.length) {
+        throw new Error('data and target mismatch');
+    }
+
+    const numTestExamples = Math.round(numExamples * testSplit);
+    const numTrainExamples = numExamples - numTestExamples;
+
+    const xDims = data[0].length;
+
+    const xs = tf.tensor2d(data, [numExamples, xDims]);
+    const ys = tf.oneHot(tf.tensor1d(targets).toInt(), NUM_CLASSES);
+
+    // split the data into training and test sets
+    const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);
+    const xTest  = xs.slice([numTrainExamples, 0], [numTestExamples, xDims]);
+    const yTrain = ys.slice([0, 0], [numTrainExamples, NUM_CLASSES]);
+    const yTest  = ys.slice([numTrainExamples, 0], [numTestExamples, NUM_CLASSES]);
+
+    return [xTrain, yTrain, xTest, yTest];
+
+}
 
 
 
