@@ -89,8 +89,8 @@ function preprocessPhotos(c) {
 
 
 // Convert Image to Tensors so that we can feed it into our network
-const tf = require('@tensorflow/tfjs-core');
-const util = require('util')
+const tf = require('@tensorflow/tfjs');
+const util = require('util');
 const {createCanvas, loadImage} = require('canvas');
 const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-diffuse'];
 const NUM_CLASSES = CLASSES.length;
@@ -121,7 +121,7 @@ async function convertImageToData() {
     var dataArray = [];
     const canvas = createCanvas(28,28);
     const cx = canvas.getContext('2d');
-    for (let c = 0; c < trainingClass; ++c) {
+    for (let c = 0; c < NUM_CLASSES; ++c) {
         for(let id = 0; id < trainingSize; ++id) {
             const image = await loadImage('training_data/export/class_'+c+'/training_'+id+'.png');
             cx.drawImage(image, 0, 0);
@@ -154,34 +154,98 @@ async function convertImageToData() {
 
 }
 
-async function gen_train_test_data(split) {
-    
-    const dataByClass = [];
-    const tartgetByClass = [];
-    for (let i = 0; i < NUM_CLASSES; ++i) {
-        dataByClass.push([]);
-        tartgetByClass.push([]);
-    }
-    const teapotData = await convertImageToData();
-    for (const teapot of teapotData) {
-        const target = teapot[teapot.length - 1];
-        const data   = teapot.slice(0, teapot.length - 1);
-        dataByClass[target].push(data);
-        targetByClass[target].push(target);
-    }
 
-    const xTrains = [];
-    const yTrains = [];
-    const xTests  = [];
-    const yTests  = [];
-    for (let c = 0; c < NUM_CLASSES; ++i) {
-        const [xTrain,yTrain,xTest,yTest] = 
-            convertToTensors(dataByClass[c], targetsByClass[c], split);
-        xTrains.push(xTrain);
-        yTrains.push(yTrain);
-        xTests.push(xTest);
-        yTests.push(yTest);
-    }
+convertImageToData()
+.then((teapotData) => gen_train_test_data(0.2, teapotData))
+.then(([xtr, ytr, xte, yte]) => do_teapot(xtr,ytr,xte,yte))
+.catch((err)=> console.log(err));
+
+async function do_teapot(xtrain, ytrain, xtest, ytest) {
+    model = await trainModel(xtrain, ytrain, xtest, ytest);
+    
+    console.log(Array.from(xtrain.dataSync()));
+    // const input = tf.tensor2d(
+    //     [Array.from(xtrain.dataSync())[0], 
+    //     Array.from(ytrain.dataSync())[0]]);
+    // const prediction = model.predict(input);
+    // console.log(prediction);
+}
+
+async function trainModel(xTrain, yTrain, xTest, yTest) {
+    const model = tf.sequential();
+    const learningRate = 0.01;
+    const epochs = 1;
+    const optimizer = tf.train.adam(learningRate);
+    console.log(xTrain);
+    model.add(tf.layers.dense(
+        { units: 10, activation:'sigmoid', inputShape: [xTrain.shape[1]]}
+    ));
+
+    model.add(tf.layers.dense(
+        { units: 4, activation: 'softmax'}
+    ));
+
+    model.compile({
+        optimizer: optimizer,
+        loss: 'categoricalCrossentropy',
+        metrics: ['accuracy']
+    });
+
+    const history = await model.fit(xTrain, yTrain,
+        { epochs: epochs, validationData: [xTest, yTest],
+            callbacks: {
+                onEpochEnd: async (epochs, logs) => {
+                    console.log("Epoch" + epochs + "Logs:" + logs.loss);
+                    await tf.nextFrame();
+                },
+            }
+        }
+    );
+    return model;
+
+}
+
+function gen_train_test_data(split, teapotData) {
+    return tf.tidy(() => {
+        const dataByClass = [[]];
+        const targetsByClass = [[]];
+        for (let i = 0; i < NUM_CLASSES - 1; ++i) {
+            dataByClass.push([]);
+            targetsByClass.push([]);
+        }
+        // const teapotData = await convertImageToData();
+
+        for (const teapot of teapotData) {
+            const target = teapot[teapot.length - 1];
+            const data   = teapot.slice(0, teapot.length - 1);
+            dataByClass[target].push(data);
+            targetsByClass[target].push(target);
+        }
+
+        const xTrains = [];
+        const yTrains = [];
+        const xTests  = [];
+        const yTests  = [];
+        for (let c = 0; c < NUM_CLASSES; ++c) {
+            const [xTrain,yTrain,xTest,yTest] = 
+                convertToTensors(dataByClass[c], targetsByClass[c], split);
+            xTrains.push(xTrain);
+            yTrains.push(yTrain);
+            xTests.push(xTest);
+            yTests.push(yTest);
+        }
+
+        const concatAxis = 0;
+        // const test1 = xTrains;
+        // const test2 = tf.concat(xTrains, concatAxis);
+        // console.log(test1);
+        // console.log("Next---------------------------------");
+        // console.log(test2);
+        return [
+            tf.concat(xTrains, concatAxis), tf.concat(yTrains, concatAxis),
+            tf.concat(xTests, concatAxis), tf.concat(yTests, concatAxis)
+        ];
+    });
 
 
 }
