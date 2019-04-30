@@ -109,10 +109,52 @@
             renderer.setSize( window.innerWidth, window.innerHeight );
             document.body.appendChild( renderer.domElement );
 
+            /////////////////////////////////////////////////////////////////////////////////////
             // User input for GLSL Shader
-            function loadGLSLANDSHADERS() {
-                
+            function loadUserGLSLFiles() {
+                var fileLoader = new THREE.FileLoader(fileManager);
+                var fileManager = new THREE.LoadingManager(loadUserShaders);
+                fileLoader.load("./user_shaders/glslVertex.txt", function(vShader) {
+                    fileLoader.load("./user_shaders/glslFragment.txt", function(fShader) {loadUserShaders(vShader, fShader)});
+                });
             }
+
+            function loadUserShaders(vShader, fShader) {
+                var manager = new THREE.LoadingManager(renderUserGLSL);
+                var loader = new THREE.ObjectLoader(manager);
+                
+                loader.load('teapot-claraio.json', function(obj) {
+                    applyGLSLUserMaterials(obj, vShader, fShader);
+                    scene.add(obj);
+                })
+            }
+
+            function renderUserGLSL() {
+                renderer.render( scene, camera );
+                communicateGLSL();
+            }
+
+            // Helper
+            function applyGLSLUserMaterials(obj, vShader, fShader) {
+                obj.traverse(function(child) {
+                if (child instanceof THREE.Mesh){
+                    child.material = addGLSLUserShaders(vShader, fShader);
+                    child.material.needsUpdate = true;
+                }
+                obj.needsUpdate=true;
+                });
+            }
+            // Helper
+            function addGLSLUserShaders(vShader, fShader) {    
+                return new THREE.ShaderMaterial({
+                    // wireframe: true, 
+                    vertexShader: vShader,
+                    fragmentShader: fShader,
+                    needsUpdate: true,
+                });
+            }
+
+            
 
 
 
@@ -130,12 +172,6 @@
                 }); 
             }
             
-            // Scene rendering starts upon completion of loading
-            function renderAndPost() {
-                renderer.render( scene, camera );
-                sleep(5);
-                generateTrainingData();
-            }
 
             //For generating training data
             function loadModels(vShader, fShader) {
@@ -147,7 +183,16 @@
                     scene.add(obj);
                 })
             }
-            // Helper apply shader materials
+
+            // Scene rendering starts upon completion of loading
+            function renderAndPost() {
+                renderer.render( scene, camera );
+                sleep(5);
+                generateTrainingData();
+            }
+
+
+            // Helper: apply shader materials
             function applyMaterials(obj, vShader, fShader) {
                 obj.traverse(function(child) {
                 if (child instanceof THREE.Mesh){
@@ -174,22 +219,26 @@
 
 
             
-
-
-
-
-            
-
+            //////////////////////////////////////////////////////////////////////////////////////////////
             // Animation loop, reload model in each frame
-            var i = 0;
             function animate() {
                 requestAnimationFrame( animate );
-                loadModels(i,"1");
-                ++i;
-
-                // window.location.href = imageData;
+                loadUserGLSLFiles();
             }
             animate();
+            
+            
+            
+            
+            
+            // Animation loop for generating training data
+            // var i = 0;
+            // function animate() {
+            //     requestAnimationFrame( animate );
+            //     loadModels(i,"1");
+            //     ++i;
+            // }
+            // animate();
 
  
             ////////////////////////////////////////////////////////////////////////////////////////////////
