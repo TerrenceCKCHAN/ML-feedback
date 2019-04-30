@@ -19,6 +19,7 @@ app.post("/post", (req, res) => {storeTrainingData(req.body);res.send("Created t
 var trainingSize = 1000;
 var trainingId = 0;
 var trainingClass = 3;
+// Store all training data from front end
 function storeTrainingData(body) {
     console.log(trainingId);
     if (trainingId == trainingSize - 1) {
@@ -30,7 +31,7 @@ function storeTrainingData(body) {
         trainingId += 1;
     }
 }
-
+// Helper function - parse and write image data to files
 function handlePhoto(body) {
     var stream = parsePhoto(Object.keys(body)[0]);
     // console.log(stream);
@@ -39,7 +40,7 @@ function handlePhoto(body) {
         if (err) {console.log(err);} else {console.log("Success")}
     })
 }
-
+// Helper function - image parser
 function parsePhoto(body) {
     var photoStr = body.substring(1, body.length - 1);
     photoStr     = photoStr.substring(photoStr.indexOf(":") + 2, photoStr.length - 1);
@@ -55,18 +56,18 @@ function parsePhoto(body) {
 const jimp = require('jimp');
 
 
-function preprocessPhoto(c, t_id) {
+async function preprocessPhoto(c, t_id) {
     let imgRaw = 'training_data/raw/class_' + c + '/training_' + t_id + '.png';
     let imgActive = 'training_data/active/class_' + c + '/training_' + t_id + '.png';
     let imgExported = 'training_data/export/class_' + c + '/training_' + t_id + '.png';
 
-    jimp.read(imgRaw)
+    await jimp.read(imgRaw)
     .then(img => (img.clone().write(imgActive)))
     .then(() => jimp.read(imgActive))
     .then(img => {return img.resize(100,100);})
-    .then(img => {return img.crop(20,25,62,62);})
+    .then(img => {return img.crop(35,50,30,23);})
     .then(img => img.resize(28,28))
-    .then(img => img.normalize())
+    // .then(img => img.normalize())
     .then(img => img.grayscale())
     .then(img => img.write(imgExported))
     .then(() => console.log('Exported file to: ' + imgExported))
@@ -74,55 +75,50 @@ function preprocessPhoto(c, t_id) {
     console.log(c+': '+t_id);    
 }
 
-function preprocessPhotos(c) {
+async function preprocessPhotos(c) {
     var t_id = 0;
     while(t_id < trainingSize) {
-        preprocessPhoto(c, t_id);
+        await preprocessPhoto(c, t_id);
         ++t_id;
     }
 }
 
-// preprocessPhotos(0)
-// preprocessPhotos(1)
-// preprocessPhotos(2)
-// preprocessPhotos(3)
+// preprocessPhoto(0,535);
+// preprocessPhoto(0,533);
+// preprocessAll();
+async function preprocessAll() {
+    await preprocessPhotos(0);
+    await preprocessPhotos(1);
+    await preprocessPhotos(2);
+    await preprocessPhotos(3);
+    await preprocessPhotos(0);
+    await preprocessPhotos(1);
+    await preprocessPhotos(2);
+    await preprocessPhotos(3);
+    console.log("Complete");
+}
 
-
-// Convert Image to Tensors so that we can feed it into our network
+// ML code main: convertImageToData -> generate train test data by converting to tensors -> ML model
 const tf = require('@tensorflow/tfjs');
 const util = require('util');
 const {createCanvas, loadImage} = require('canvas');
 const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-diffuse'];
-const NUM_CLASSES = CLASSES.length;
+const NUM_CLASSES = 4;
 
-
-async function toTensor() {
-    // const image = fs.readFileSync('training_data/export/class_0/training_0.png');
-    // var buf = new Buffer.from(image, 'base64');
-    // tf.fromPixels(image);
-    // console.log(image);
-    const canvas = createCanvas(100,100);
-    const cx = canvas.getContext('2d');
-    const image1 = await loadImage('training_data/export/class_0/training_0.png');
-    console.log(image1);
-    await cx.drawImage(image1,0,0);
-    var tensor = tf.browser.fromPixels(canvas);
-
-
-    // console.log(util.inspect(await tensor.data(), {maxArrayLength:10,compact:true,showHidden: true, depth: null}));
-    
-
-
-}
-
+convertImageToData()
+.then((teapotData) => gen_train_test_data(0.2, teapotData))
+.then(([xtr, ytr, xte, yte]) => do_teapot(xtr,ytr,xte,yte))
+.catch((err)=> console.log(err));
 
 
 async function convertImageToData() {
     var dataArray = [];
     const canvas = createCanvas(28,28);
     const cx = canvas.getContext('2d');
-    for (let c = 0; c < NUM_CLASSES; ++c) {
-        for(let id = 0; id < trainingSize; ++id) {
+    const NC = [0,1,2,3];
+    const TZ = Array.from(Array(100).keys());
+    for (const c of NC) {
+        for(const id of TZ) {
             const image = await loadImage('training_data/export/class_'+c+'/training_'+id+'.png');
             cx.drawImage(image, 0, 0);
             const tensorObj = tf.browser.fromPixels(canvas, 1);
@@ -133,37 +129,15 @@ async function convertImageToData() {
         }
     }
     return dataArray;
-    // const canvas = createCanvas(28,28);
-    // const cx = canvas.getContext('2d');
-    // const image1 = await loadImage('training_data/export/class_0/training_0.png');
-    // const image2 = await loadImage('training_data/export/class_0/training_1.png')
-    // await cx.drawImage(image1,0,0);
-    // var tensor = tf.browser.fromPixels(canvas, 1);
-    // const values = tensor.dataSync();
-    // const arr = Array.from(values);
-    // arr.push(0);
-    // // console.log(util.inspect(arr, {maxArrayLength:1000}));
-    // dataArray.push(arr);
-    // await cx.drawImage(image2,0,0);
-    // tensor = tf.browser.fromPixels(canvas, 1);
-    // const values1 = tensor.dataSync();
-    // const arr1 = Array.from(values1);
-
-    // dataArray.push(arr1);
-    // console.log(util.inspect(dataArray, {maxArrayLength:155}));
-
 }
 
 
-convertImageToData()
-.then((teapotData) => gen_train_test_data(0.2, teapotData))
-.then(([xtr, ytr, xte, yte]) => do_teapot(xtr,ytr,xte,yte))
-.catch((err)=> console.log(err));
 
 async function do_teapot(xtrain, ytrain, xtest, ytest) {
     model = await trainModel(xtrain, ytrain, xtest, ytest);
     
-    console.log(Array.from(xtrain.dataSync()));
+    // console.log(util.inspect(Array.from(xtrain.dataSync()), {maxArrayLength:1}));
+    // console.log(util.inspect(Array.from(xtest.dataSync()), {maxArrayLength:1}));
     // const input = tf.tensor2d(
     //     [Array.from(xtrain.dataSync())[0], 
     //     Array.from(ytrain.dataSync())[0]]);
@@ -173,12 +147,12 @@ async function do_teapot(xtrain, ytrain, xtest, ytest) {
 
 async function trainModel(xTrain, yTrain, xTest, yTest) {
     const model = tf.sequential();
-    const learningRate = 0.01;
-    const epochs = 1;
+    const learningRate = 0.0001;
+    const epochs = 10;
     const optimizer = tf.train.adam(learningRate);
-    console.log(xTrain);
+    // console.log(util.inspect(xTrain, {maxArrayLength:1}));
     model.add(tf.layers.dense(
-        { units: 10, activation:'sigmoid', inputShape: [xTrain.shape[1]]}
+        { units: 32, activation:'sigmoid', inputShape: [xTrain.shape[1]]}
     ));
 
     model.add(tf.layers.dense(
@@ -213,7 +187,6 @@ function gen_train_test_data(split, teapotData) {
             dataByClass.push([]);
             targetsByClass.push([]);
         }
-        // const teapotData = await convertImageToData();
 
         for (const teapot of teapotData) {
             const target = teapot[teapot.length - 1];
@@ -236,38 +209,13 @@ function gen_train_test_data(split, teapotData) {
         }
 
         const concatAxis = 0;
-        // const test1 = xTrains;
-        // const test2 = tf.concat(xTrains, concatAxis);
-        // console.log(test1);
-        // console.log("Next---------------------------------");
-        // console.log(test2);
+
         return [
             tf.concat(xTrains, concatAxis), tf.concat(yTrains, concatAxis),
             tf.concat(xTests, concatAxis), tf.concat(yTests, concatAxis)
         ];
     });
-
-
 }
-
-
-
-
-const data = [[1,2,3,4],
-              [2,2,3,4],
-              [3,2,3,4],
-              [4,2,3,4],
-              [6,2,3,4],
-              [7,2,3,4],
-              [8,2,3,4],
-              [3,2,3,4],
-              [5,3,4,2],
-              [10,10,10,10]];
-
-const targets = [0,0,0,0,1,1,2,2,3,3];
-// const [xtr,ytr,xte,yte] = convertToTensors(data, targets, 0.2);
-// console.log(ytr)
-// console.log(yte);
 
 function convertToTensors(data, targets, testSplit) {
     const numExamples = data.length;

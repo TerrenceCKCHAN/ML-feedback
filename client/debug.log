@@ -1,0 +1,3 @@
+[0428/122041.554:ERROR:file_io.cc(134)] WriteFile: There is not enough space on the disk. (0x70)
+[0428/122041.556:ERROR:crash_report_exception_handler.cc(111)] WriteEverything failed
+[0428/122041.557:ERROR:filesystem_win.cc(148)] DeleteFile C:\Users\admin\AppData\Local\Google\Chrome\User Data\Crashpad\reports\589ae596-0457-4ab6-a592-5aea85af0d49.dmp: The process cannot access the file because it is being used by another process. (0x20)
