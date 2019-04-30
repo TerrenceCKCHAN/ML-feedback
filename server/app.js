@@ -99,7 +99,7 @@ async function preprocessAll() {
 }
 
 // Handling User GLSL shader data
-app.post("/glsl", (req, res) => {saveGLSL(req.body)});
+app.post("/glsl", (req, res) => {saveGLSL(req.body);res.send("GLSL received!")});
 
 function saveGLSL(body) {
     var stream = parsePhoto(Object.keys(body)[0]);

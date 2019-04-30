@@ -103,19 +103,28 @@
             // scene definition
             var scene = new THREE.Scene();
             var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-            var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
+            var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true, autoClear: true});
             camera.position.y = 1;
             camera.position.z = 3;
             renderer.setSize( window.innerWidth, window.innerHeight );
             document.body.appendChild( renderer.domElement );
 
             /////////////////////////////////////////////////////////////////////////////////////
+            
+            function autoVersionVShader() {
+                return "./user_shaders/glslVertex.txt";
+            }
+
+            function autoVersionFShader() {
+                return "./user_shaders/glslFragment.txt";
+            }
+            
             // User input for GLSL Shader
             function loadUserGLSLFiles() {
                 var fileLoader = new THREE.FileLoader(fileManager);
                 var fileManager = new THREE.LoadingManager(loadUserShaders);
-                fileLoader.load("./user_shaders/glslVertex.txt", function(vShader) {
-                    fileLoader.load("./user_shaders/glslFragment.txt", function(fShader) {loadUserShaders(vShader, fShader)});
+                fileLoader.load(autoVersionVShader(), function(vShader) {
+                    fileLoader.load(autoVersionFShader(), function(fShader) {loadUserShaders(vShader, fShader)});
                 });
             }
 
@@ -260,6 +269,7 @@
                     },
                     body: JSON.stringify({image})
                 })
+                .then((res) => console.log("Received User Teapot!"))
                 .catch(err => console.error('Caught Error: ' + err))
             }
             
