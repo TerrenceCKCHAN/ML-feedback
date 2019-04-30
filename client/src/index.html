@@ -11,6 +11,7 @@
 	<body>
         <h1>Hello</h1>
         <script src="js/three.js"></script>
+        <script src="js/socket.io-client/dist/socket.io.js"></script>
         <!-- <script src="js/libs/loaders/XLoader.js"></script> -->
         
         
@@ -73,7 +74,7 @@
                 specularColour = vec3(1,1,1);
 
 
-                vec4 lightPosition = vec4(10.0 * change_sign(seedX),5.0 * rnd(seedX + 1.0),10.0 + 5.0*rnd(seedX),0);
+                vec4 lightPosition = vec4(6,2,3,0);
                 vec4 lPos_camSpace = pMatrix * mvMatrix * lightPosition;
                 vec4 fragPos_camSpace = pMatrix * mvMatrix * gl_FragCoord;
                 // Diffuse Component
@@ -88,9 +89,9 @@
                 
                 gl_FragColor = 
                 vec4(
-                ka * ambientColour + 
-                kd * nDotL * diffuseColour +
-                ks * pow(rDotV, shininess) * specularColour
+                ka * vec3(0,0,0) + 
+                kd * nDotL * vec3(0.5,0,0) +
+                ks * pow(rDotV, shininess) * vec3(1,1,1)
                 , 1.0);
             }
         </script>
@@ -99,14 +100,28 @@
 
         
         <script id="canvas">	
-
+            // scene definition
             var scene = new THREE.Scene();
-            var shaderId = 0;
-            
+            var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+            var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
+            camera.position.y = 1;
+            camera.position.z = 3;
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            // User input for GLSL Shader
+            function loadGLSLANDSHADERS() {
+                
+            }
 
 
 
-            
+
+
+
+            //////////////////////////////////////////////////////////////////////////////////////////
+            //Generating Training data
+            // Load shader files -> load shader materials -> render and generate training data
             function loadAll() {
                 var fileLoader = new THREE.FileLoader(fileManager);
                 var fileManager = new THREE.LoadingManager(loadModels);
@@ -114,9 +129,15 @@
                     fileLoader.load("./training_shaders/fragmentShader" + "" + ".txt", function(fShader) {loadModels(vShader, fShader)});
                 }); 
             }
+            
+            // Scene rendering starts upon completion of loading
+            function renderAndPost() {
+                renderer.render( scene, camera );
+                sleep(5);
+                generateTrainingData();
+            }
 
-
-
+            //For generating training data
             function loadModels(vShader, fShader) {
                 var manager = new THREE.LoadingManager(renderAndPost);
                 var loader = new THREE.ObjectLoader(manager);
@@ -126,7 +147,7 @@
                     scene.add(obj);
                 })
             }
-
+            // Helper apply shader materials
             function applyMaterials(obj, vShader, fShader) {
                 obj.traverse(function(child) {
                 if (child instanceof THREE.Mesh){
@@ -137,7 +158,7 @@
                 });
             }
             
-
+            // Helper: Get the vertexShader and the fragmentShader
             function addShaders(vShader, fShader) {
                 
                 return new THREE.ShaderMaterial({
@@ -153,29 +174,56 @@
 
 
             
-            //LIGHTS
-            var light = new THREE.AmbientLight(0xfffff, 0.5);
-            // scene.add(light);
-            
-            var pointLight = new THREE.PointLight(0xfffff,0.5);
-            // scene.add(pointLight);
 
-            var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
 
-            var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
-            renderer.setSize( window.innerWidth, window.innerHeight );
-            renderer.domElement.id = 'the_canvas';
-            document.body.appendChild( renderer.domElement );
-            
-            var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-            var material = new THREE.MeshBasicMaterial( { color: 0xf0ff00 } );
-            var cube = new THREE.Mesh( geometry, material );
-            // scene.add( cube );
-            
-            camera.position.y = 1;
-            camera.position.z = 3;
+
+
             
 
+            // Animation loop, reload model in each frame
+            var i = 0;
+            function animate() {
+                requestAnimationFrame( animate );
+                loadModels(i,"1");
+                ++i;
+
+                // window.location.href = imageData;
+            }
+            animate();
+
+ 
+            ////////////////////////////////////////////////////////////////////////////////////////////////
+            // Utils and server connections
+            // Get GLSL canvas, convert to data, post to server
+            function communicateGLSL() {
+                var imageData = renderer.domElement.toDataURL("image/png")
+                                .replace("image/png", "image/octet-stream");
+                // connectGLSL(imageData);
+            }
+
+            //API to connect user glsl console to server
+            function connectGLSL(image) {
+                fetch('http://localhost:3001/glsl', {
+                    mode: "no-cors",
+                    method: 'post',
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: JSON.stringify({image})
+                })
+                .catch(err => console.error('Caught Error: ' + err))
+            }
+            
+            // Abort websocket
+            // var socket = io.connect('http://localhost:3001');
+
+
+            // Generate training data and post to server
+            function generateTrainingData() {
+                var imageData = renderer.domElement.toDataURL("image/png")
+                                .replace("image/png", "image/octet-stream");
+                // postImage(imageData);
+            }
             // API to postImage to server
             function postImage(image) {
                 fetch('http://localhost:3001/post' , {
@@ -186,51 +234,15 @@
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
                     body: JSON.stringify({image})
-                    // body: JSON.stringify({
-                    //     description: 'Posting image',
-                    //     public: true,
-                    //     files: {
-                    //         'img.png': {
-                    //             content: null
-                    //         }
-                    //     }
-                    // })
+
                 })
                 .catch(err => console.error('Caught Error: ' + err))
             }
-            function generateTrainingData() {
-                var imageData = renderer.domElement.toDataURL("image/png").replace("image/png", "image/octet-stream");
-                // console.log(imageData);
-                postImage(imageData);
-            }
-            
-            // Scene rendering starts upon completion of loading
-            
-            function renderAndPost() {
-                renderer.render( scene, camera );
-                sleep(5);
-                generateTrainingData();
-            }
-            
-            var i = 0;
-            function animate() {
-                // cube.rotation.x += 0.01;
-                // cube.rotation.y += 0.01;
-                requestAnimationFrame( animate );
-                loadModels(i,"1");
-                ++i;
 
-                // window.location.href = imageData;
-                    
-                
-                
-            }
-            animate();
-
+            // Helper: sleep
             const sleep = (ms) => {
                 return new Promise(resolve => setTimeout(resolve, ms))
             }
-
 
         </script>
         

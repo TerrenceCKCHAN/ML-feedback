@@ -98,6 +98,42 @@ async function preprocessAll() {
     console.log("Complete");
 }
 
+// Handling User GLSL shader data
+app.post("/glsl", (req, res) => {saveGLSL(req.body)});
+
+function saveGLSL(body) {
+    var stream = parsePhoto(Object.keys(body)[0]);
+    var buf = new Buffer.from(stream, 'base64');
+    fs.writeFile('./glsl/' + 'user' + '.png', buf, (err) => {
+        if (err) {console.log(err);} else {console.log("Success")}
+    })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Abort websocket
+// var http = require('http').Server(app);
+// var socket_io = require('socket.io').listen(http, {origins: 'http://127.0.0.1:8080'});
+
+// socket_io.on('connection', function(socket) {
+//     console.log('a user connected');
+// })
+
+
+
+
+
+
 // ML code main: convertImageToData -> generate train test data by converting to tensors -> ML model
 const tf = require('@tensorflow/tfjs');
 const util = require('util');
@@ -105,10 +141,15 @@ const {createCanvas, loadImage} = require('canvas');
 const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-diffuse'];
 const NUM_CLASSES = 4;
 
-convertImageToData()
-.then((teapotData) => gen_train_test_data(0.2, teapotData))
-.then(([xtr, ytr, xte, yte]) => do_teapot(xtr,ytr,xte,yte))
-.catch((err)=> console.log(err));
+
+// model_and_predict();
+
+function model_and_predict() {
+    convertImageToData()
+    .then((teapotData) => gen_train_test_data(0.2, teapotData))
+    .then(([xtr, ytr, xte, yte]) => do_teapot(xtr,ytr,xte,yte))
+    .catch((err)=> console.log(err));
+}
 
 
 async function convertImageToData() {

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "express-generator": "^4.16.0"
+    "express-generator": "^4.16.0",
+    "socket.io": "^2.2.0"
   },
   "devDependencies": {
     "concurrently": "^4.1.0"
