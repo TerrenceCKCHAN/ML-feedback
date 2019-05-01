@@ -67,11 +67,11 @@ async function preprocessPhoto(c, t_id) {
     .then(img => {return img.resize(100,100);})
     .then(img => {return img.crop(35,50,30,23);})
     .then(img => img.resize(28,28))
-    // .then(img => img.normalize())
+    .then(img => img.normalize())
     .then(img => img.grayscale())
     .then(img => img.write(imgExported))
     .then(() => console.log('Exported file to: ' + imgExported))
-    .catch(err => console.error(err));
+    .catch((err) => {console.error(err); preprocessPhoto(c, t_id)});
     console.log(c+': '+t_id);    
 }
 
@@ -87,10 +87,6 @@ async function preprocessPhotos(c) {
 // preprocessPhoto(0,533);
 // preprocessAll();
 async function preprocessAll() {
-    await preprocessPhotos(0);
-    await preprocessPhotos(1);
-    await preprocessPhotos(2);
-    await preprocessPhotos(3);
     await preprocessPhotos(0);
     await preprocessPhotos(1);
     await preprocessPhotos(2);
@@ -147,7 +143,7 @@ model_and_predict();
 function model_and_predict() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(0.4, teapotData))
-    .then(([xtr, ytr, xte, yte]) => do_teapot(xtr,ytr,xte,yte))
+    .then(([xtr, ytr, xva,yva,xte, yte]) => do_teapot(xtr,ytr,xva,yva,xte,yte))
     .catch((err)=> console.log(err));
 }
 
@@ -157,7 +153,7 @@ async function convertImageToData() {
     const canvas = createCanvas(28,28);
     const cx = canvas.getContext('2d');
     const NC = [0,1,2,3];
-    const TZ = Array.from(Array(100).keys());
+    const TZ = Array.from(Array(1000).keys());
     for (const c of NC) {
         for(const id of TZ) {
             const image = await loadImage('training_data/export/class_'+c+'/training_'+id+'.png');
@@ -174,27 +170,39 @@ async function convertImageToData() {
 
 
 
-async function do_teapot(xtrain, ytrain, xtest, ytest) {
-    model = await trainModel(xtrain, ytrain, xtest, ytest);
-    
-    // console.log(util.inspect(Array.from(xtrain.dataSync()), {maxArrayLength:1}));
-    // console.log(util.inspect(Array.from(xtest.dataSync()), {maxArrayLength:1}));
-    // const input = tf.tensor2d(
-    //     [Array.from(xtrain.dataSync())[0], 
-    //     Array.from(ytrain.dataSync())[0]]);
+async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
+    model = await trainModel(xtrain, ytrain,xvalid,yvalid, xtest, ytest);
+    // console.log(xtest);
+    // const input = tf.concat(xtest.slice([0,0], [0,784]), 0);
     // const prediction = model.predict(input);
     // console.log(prediction);
+    // for (const xt of xtest) {
+    //     const prediction = model.predict(xt);
+    //     console.log(prediction);
+    // }
+    
+    
 }
 
-async function trainModel(xTrain, yTrain, xTest, yTest) {
+async function trainModel(xTrain, yTrain, xValid, yValid) {
     const model = tf.sequential();
     const learningRate = 0.00004;
     const epochs = 100;
     const optimizer = tf.train.adam(learningRate);
     // console.log(util.inspect(xTrain, {maxArrayLength:1}));
     model.add(tf.layers.dense(
-        { units: 32, activation:'relu', inputShape: [xTrain.shape[1]]}
+        { units: 10, activation:'relu', inputShape: [xTrain.shape[1]]}
     ));
+
+    // model.add(tf.layers.dropout(
+    //     { rate: 0.5 }
+    // ));
+    // model.add(tf.layers.dense(
+    //     { units: 64, activation:'relu' }
+    // ));
+    // model.add(tf.layers.dropout(
+    //     { rate: 0.5 }
+    // ));
 
     model.add(tf.layers.dense(
         { units: 4, activation: 'softmax'}
@@ -207,7 +215,7 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     });
 
     const history = await model.fit(xTrain, yTrain,
-        { epochs: epochs, validationData: [xTest, yTest],
+        { epochs: epochs, validationData: [xValid, yValid],
             callbacks: {
                 onEpochEnd: async (epochs, logs) => {
                     console.log("Epoch" + epochs + "\nAccuracy:" + logs.acc);
@@ -239,13 +247,17 @@ function gen_train_test_data(split, teapotData) {
 
         const xTrains = [];
         const yTrains = [];
+        const xValids  = [];
+        const yValids  = []
         const xTests  = [];
         const yTests  = [];
         for (let c = 0; c < NUM_CLASSES; ++c) {
-            const [xTrain,yTrain,xTest,yTest] = 
+            const [xTrain,yTrain,xValid,yValid,xTest,yTest] = 
                 convertToTensors(dataByClass[c], targetsByClass[c], split);
             xTrains.push(xTrain);
             yTrains.push(yTrain);
+            xValids.push(xValid);
+            yValids.push(yValid);
             xTests.push(xTest);
             yTests.push(yTest);
         }
@@ -254,6 +266,7 @@ function gen_train_test_data(split, teapotData) {
 
         return [
             tf.concat(xTrains, concatAxis), tf.concat(yTrains, concatAxis),
+            tf.concat(xValids, concatAxis), tf.concat(yValids, concatAxis),
             tf.concat(xTests, concatAxis), tf.concat(yTests, concatAxis)
         ];
     });
@@ -265,8 +278,9 @@ function convertToTensors(data, targets, testSplit) {
         throw new Error('data and target mismatch');
     }
 
-    const numTestExamples = Math.round(numExamples * testSplit);
-    const numTrainExamples = numExamples - numTestExamples;
+    const numTestExamples = Math.round(numExamples * testSplit / 2);
+    const numValidExamples = Math.round(numExamples * testSplit / 2);
+    const numTrainExamples = numExamples - numValidExamples - numTestExamples;
 
     const xDims = data[0].length;
 
@@ -275,11 +289,13 @@ function convertToTensors(data, targets, testSplit) {
 
     // split the data into training and test sets
     const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);
-    const xTest  = xs.slice([numTrainExamples, 0], [numTestExamples, xDims]);
+    const xValid  = xs.slice([numTrainExamples, 0], [numValidExamples, xDims]);
+    const xTest  = xs.slice([numTrainExamples + numValidExamples, 0], [numTestExamples, xDims]);
     const yTrain = ys.slice([0, 0], [numTrainExamples, NUM_CLASSES]);
-    const yTest  = ys.slice([numTrainExamples, 0], [numTestExamples, NUM_CLASSES]);
+    const yValid  = ys.slice([numTrainExamples, 0], [numValidExamples, NUM_CLASSES]);
+    const yTest  = ys.slice([numTrainExamples + numValidExamples, 0], [numTestExamples, NUM_CLASSES]);
 
-    return [xTrain, yTrain, xTest, yTest];
+    return [xTrain, yTrain, xValid, yValid, xTest, yTest];
 
 }
 
