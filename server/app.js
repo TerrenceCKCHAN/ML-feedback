@@ -142,11 +142,11 @@ const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-di
 const NUM_CLASSES = 4;
 
 
-// model_and_predict();
+model_and_predict();
 
 function model_and_predict() {
     convertImageToData()
-    .then((teapotData) => gen_train_test_data(0.2, teapotData))
+    .then((teapotData) => gen_train_test_data(0.4, teapotData))
     .then(([xtr, ytr, xte, yte]) => do_teapot(xtr,ytr,xte,yte))
     .catch((err)=> console.log(err));
 }
@@ -188,12 +188,12 @@ async function do_teapot(xtrain, ytrain, xtest, ytest) {
 
 async function trainModel(xTrain, yTrain, xTest, yTest) {
     const model = tf.sequential();
-    const learningRate = 0.0001;
-    const epochs = 10;
+    const learningRate = 0.00004;
+    const epochs = 100;
     const optimizer = tf.train.adam(learningRate);
     // console.log(util.inspect(xTrain, {maxArrayLength:1}));
     model.add(tf.layers.dense(
-        { units: 32, activation:'sigmoid', inputShape: [xTrain.shape[1]]}
+        { units: 32, activation:'relu', inputShape: [xTrain.shape[1]]}
     ));
 
     model.add(tf.layers.dense(
@@ -203,19 +203,20 @@ async function trainModel(xTrain, yTrain, xTest, yTest) {
     model.compile({
         optimizer: optimizer,
         loss: 'categoricalCrossentropy',
-        metrics: ['accuracy']
+        metrics: ['accuracy', ]
     });
 
     const history = await model.fit(xTrain, yTrain,
         { epochs: epochs, validationData: [xTest, yTest],
             callbacks: {
                 onEpochEnd: async (epochs, logs) => {
-                    console.log("Epoch" + epochs + "Logs:" + logs.loss);
+                    console.log("Epoch" + epochs + "\nAccuracy:" + logs.acc);
                     await tf.nextFrame();
                 },
             }
         }
     );
+    // console.log(history);
     return model;
 
 }
