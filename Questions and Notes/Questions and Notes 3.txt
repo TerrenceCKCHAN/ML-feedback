@@ -18,6 +18,7 @@ Very static feedback for now - list the errors and vanish upon refinement
 1. Rework ML training model -> split dataset into three sets
 2. Better Data
 if accuracy > 90
+-- Stablize, or store the model somewhere
 then 1st experiment done.
 3. More classes and training data - possibly a more complicated neural network
 4. Extend the task to more tasks such as texture mapping ... etc

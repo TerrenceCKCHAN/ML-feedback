@@ -138,12 +138,13 @@ const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-di
 const NUM_CLASSES = 4;
 
 
-model_and_predict();
 
+model_and_predict();
 function model_and_predict() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(0.4, teapotData))
     .then(([xtr, ytr, xva,yva,xte, yte]) => do_teapot(xtr,ytr,xva,yva,xte,yte))
+    // .then((model) => {return model})
     .catch((err)=> console.log(err));
 }
 
@@ -153,7 +154,7 @@ async function convertImageToData() {
     const canvas = createCanvas(28,28);
     const cx = canvas.getContext('2d');
     const NC = [0,1,2,3];
-    const TZ = Array.from(Array(1000).keys());
+    const TZ = Array.from(Array(10).keys());
     for (const c of NC) {
         for(const id of TZ) {
             const image = await loadImage('training_data/export/class_'+c+'/training_'+id+'.png');
@@ -171,23 +172,45 @@ async function convertImageToData() {
 
 
 async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
-    model = await trainModel(xtrain, ytrain,xvalid,yvalid, xtest, ytest);
-    // console.log(xtest);
-    // const input = tf.concat(xtest.slice([0,0], [0,784]), 0);
-    // const prediction = model.predict(input);
-    // console.log(prediction);
-    // for (const xt of xtest) {
-    //     const prediction = model.predict(xt);
-    //     console.log(prediction);
-    // }
+    model = await trainModel(xtrain, ytrain, xvalid, yvalid);
+    // const saveModel = await model.save('models/model-1');
+    // const loadedModel = await tf.loadLayersModel('');
+    // Generate predictions using test sets
+    // Tensors of predictions
+    const predictions = await model.predict(xtest).argMax(-1);
+    const predList    = predictions.dataSync();
+    // Encode prediction tensors to one hot representation
+    const predictionsOneHot = tf.oneHot(predictions, 4);
+    // Decode ytest from one hot encoding; Still a tensor
+    const yTruth = tf.argMax(ytest, axis=1);
+    const yTruthList = yTruth.dataSync();
+    // Custom code to generating the accuracy
+    var correct = 0;
+    var wrong   = 0;
+    for (var i = 0; i < yTruthList.length; ++i) {
+        if (yTruthList[i] == predList[i]) {
+            correct++;
+        } else {
+            wrong++;
+        }
+    }
+    console.log('Accuracy: ' + correct / yTruthList.length);
+    console.log('Number of correct:' + correct);
+    console.log('Number of wrong: ' + wrong);
     
+    // Using tf metrics
+    // const precision = tf.metrics.precision(ytest, predictionsOneHot).dataSync()[0];
+    // const recall = tf.metrics.recall(ytest, predictionsOneHot).dataSync()[0];
+    // console.log('Classification results on Test set: ' +  
+    //             '\nPrecision: ' + precision +
+    //             '\nRecall: ' + recall);    
     
 }
 
 async function trainModel(xTrain, yTrain, xValid, yValid) {
     const model = tf.sequential();
     const learningRate = 0.00004;
-    const epochs = 100;
+    const epochs = 1;
     const optimizer = tf.train.adam(learningRate);
     // console.log(util.inspect(xTrain, {maxArrayLength:1}));
     model.add(tf.layers.dense(
