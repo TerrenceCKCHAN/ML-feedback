@@ -1,0 +1,20 @@
+TODO:
+Resolve tfjs node module installation
+save model
+generate statistics from model
+
+//////////////////////////////
+Convolutional neural network
+
+
+
+
+
+Histogram of all the pixels
+image representation + intensity representation
+=> convolution network 
+lack of spacial recognition -> for each type of flaw
+
+cross validation 
+randomized data
+

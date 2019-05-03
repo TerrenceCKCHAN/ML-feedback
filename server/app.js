@@ -131,7 +131,7 @@ function saveGLSL(body) {
 
 
 // ML code main: convertImageToData -> generate train test data by converting to tensors -> ML model
-const tf = require('@tensorflow/tfjs');
+const tf = require('@tensorflow/tfjs-node');
 const util = require('util');
 const {createCanvas, loadImage} = require('canvas');
 const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-diffuse'];
@@ -139,7 +139,7 @@ const NUM_CLASSES = 4;
 
 
 
-model_and_predict();
+// model_and_predict();
 function model_and_predict() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(0.4, teapotData))
@@ -170,14 +170,21 @@ async function convertImageToData() {
 }
 
 
+loadModel();
+async function loadModel() { 
+    const loadedModel = await tf.loadLayersModel('file://./models/model-1/model.json');
+    loadedModel.summary();
+}
+
+
 
 async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
     model = await trainModel(xtrain, ytrain, xvalid, yvalid);
-    // const saveModel = await model.save('models/model-1');
-    // const loadedModel = await tf.loadLayersModel('');
+    const saveModel = await model.save('file://./models/model-1');
+    
     // Generate predictions using test sets
     // Tensors of predictions
-    const predictions = await model.predict(xtest).argMax(-1);
+    const predictions = await loadedModel.predict(xtest).argMax(-1);
     const predList    = predictions.dataSync();
     // Encode prediction tensors to one hot representation
     const predictionsOneHot = tf.oneHot(predictions, 4);
@@ -214,7 +221,7 @@ async function trainModel(xTrain, yTrain, xValid, yValid) {
     const optimizer = tf.train.adam(learningRate);
     // console.log(util.inspect(xTrain, {maxArrayLength:1}));
     model.add(tf.layers.dense(
-        { units: 10, activation:'relu', inputShape: [xTrain.shape[1]]}
+        { units: 50, activation:'relu', inputShape: [xTrain.shape[1]]}
     ));
 
     // model.add(tf.layers.dropout(
