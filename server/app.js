@@ -139,7 +139,7 @@ const NUM_CLASSES = 4;
 
 
 
-// model_and_predict();
+model_and_predict();
 function model_and_predict() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(0.4, teapotData))
@@ -154,7 +154,7 @@ async function convertImageToData() {
     const canvas = createCanvas(28,28);
     const cx = canvas.getContext('2d');
     const NC = [0,1,2,3];
-    const TZ = Array.from(Array(10).keys());
+    const TZ = Array.from(Array(1000).keys());
     for (const c of NC) {
         for(const id of TZ) {
             const image = await loadImage('training_data/export/class_'+c+'/training_'+id+'.png');
@@ -170,7 +170,7 @@ async function convertImageToData() {
 }
 
 
-loadModel();
+// loadModel();
 async function loadModel() { 
     const loadedModel = await tf.loadLayersModel('file://./models/model-1/model.json');
     loadedModel.summary();
@@ -179,12 +179,12 @@ async function loadModel() {
 
 
 async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
-    model = await trainModel(xtrain, ytrain, xvalid, yvalid);
-    const saveModel = await model.save('file://./models/model-1');
+    model = await trainModelCNN(xtrain, ytrain, xvalid, yvalid);
+    const saveModel = await model.save('file://./models/model-cnn');
     
     // Generate predictions using test sets
     // Tensors of predictions
-    const predictions = await loadedModel.predict(xtest).argMax(-1);
+    const predictions = await model.predict(xtest).argMax(-1);
     const predList    = predictions.dataSync();
     // Encode prediction tensors to one hot representation
     const predictionsOneHot = tf.oneHot(predictions, 4);
@@ -214,25 +214,15 @@ async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
     
 }
 
-async function trainModel(xTrain, yTrain, xValid, yValid) {
+async function trainModelMLP(xTrain, yTrain, xValid, yValid) {
     const model = tf.sequential();
-    const learningRate = 0.00004;
-    const epochs = 1;
+    const learningRate = 0.00008;
+    const epochs = 50;
     const optimizer = tf.train.adam(learningRate);
     // console.log(util.inspect(xTrain, {maxArrayLength:1}));
     model.add(tf.layers.dense(
-        { units: 50, activation:'relu', inputShape: [xTrain.shape[1]]}
+        { units: 10, activation:'relu', inputShape: [xTrain.shape[1]]}
     ));
-
-    // model.add(tf.layers.dropout(
-    //     { rate: 0.5 }
-    // ));
-    // model.add(tf.layers.dense(
-    //     { units: 64, activation:'relu' }
-    // ));
-    // model.add(tf.layers.dropout(
-    //     { rate: 0.5 }
-    // ));
 
     model.add(tf.layers.dense(
         { units: 4, activation: 'softmax'}
@@ -254,9 +244,7 @@ async function trainModel(xTrain, yTrain, xValid, yValid) {
             }
         }
     );
-    // console.log(history);
     return model;
-
 }
 
 function gen_train_test_data(split, teapotData) {

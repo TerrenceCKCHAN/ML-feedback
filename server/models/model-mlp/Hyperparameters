@@ -1,0 +1,17 @@
+Sequential network
+
+Relu Layer
+10 units
+
+Softmax Layer
+4 units
+
+learning rate 0.00008
+
+50 Epochs, adam optimizer
+
+Achieved: 
+Training accuaracy 0.99125
+Test accuaracy 0.985
+
+Notes: One of the attempts from a lot of flucutations
