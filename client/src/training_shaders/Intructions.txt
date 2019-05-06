@@ -12,3 +12,11 @@ No specular component
 
 vertexShader and fragmentShader 3 are in class 3 ->
 No diffuse component
+
+
+#Extend
+No Ambient,
+wrong diffuse (n dot l)
+wrong specular (r dot v)
+light in shadow
+wrong perspective (Maybe)

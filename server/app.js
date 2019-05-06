@@ -182,28 +182,28 @@ async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
     model = await trainModelCNN(xtrain, ytrain, xvalid, yvalid);
     const saveModel = await model.save('file://./models/model-cnn');
     
-    // Generate predictions using test sets
-    // Tensors of predictions
-    const predictions = await model.predict(xtest).argMax(-1);
-    const predList    = predictions.dataSync();
-    // Encode prediction tensors to one hot representation
-    const predictionsOneHot = tf.oneHot(predictions, 4);
-    // Decode ytest from one hot encoding; Still a tensor
-    const yTruth = tf.argMax(ytest, axis=1);
-    const yTruthList = yTruth.dataSync();
-    // Custom code to generating the accuracy
-    var correct = 0;
-    var wrong   = 0;
-    for (var i = 0; i < yTruthList.length; ++i) {
-        if (yTruthList[i] == predList[i]) {
-            correct++;
-        } else {
-            wrong++;
-        }
-    }
-    console.log('Accuracy: ' + correct / yTruthList.length);
-    console.log('Number of correct:' + correct);
-    console.log('Number of wrong: ' + wrong);
+    // // Generate predictions using test sets
+    // // Tensors of predictions
+    // const predictions = await model.predict(xtest).argMax(-1);
+    // const predList    = predictions.dataSync();
+    // // Encode prediction tensors to one hot representation
+    // const predictionsOneHot = tf.oneHot(predictions, 4);
+    // // Decode ytest from one hot encoding; Still a tensor
+    // const yTruth = tf.argMax(ytest, axis=1);
+    // const yTruthList = yTruth.dataSync();
+    // // Custom code to generating the accuracy
+    // var correct = 0;
+    // var wrong   = 0;
+    // for (var i = 0; i < yTruthList.length; ++i) {
+    //     if (yTruthList[i] == predList[i]) {
+    //         correct++;
+    //     } else {
+    //         wrong++;
+    //     }
+    // }
+    // console.log('Accuracy: ' + correct / yTruthList.length);
+    // console.log('Number of correct:' + correct);
+    // console.log('Number of wrong: ' + wrong);
     
     // Using tf metrics
     // const precision = tf.metrics.precision(ytest, predictionsOneHot).dataSync()[0];
@@ -212,6 +212,96 @@ async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
     //             '\nPrecision: ' + precision +
     //             '\nRecall: ' + recall);    
     
+}
+
+async function trainModelCNN(xTrain, yTrain, xValid, yValid) {
+    const model = tf.sequential();
+    const IMAGE_WIDTH = 28;
+    const IMAGE_HEIGHT = 28;
+    const CHANNELS = 1;
+    
+    // First layer
+    model.add(tf.layers.conv2d({
+        inputShape: [IMAGE_WIDTH, IMAGE_HEIGHT, CHANNELS],
+        kernelSize:5,
+        filters: 8,
+        strides: 1,
+        activation: 'relu',
+        kernelInitializer: 'varianceScaling'
+    }));
+
+    // MaxPooling Layer 
+    model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+
+    // Second Layer with Max Pooling
+    model.add(tf.layers.conv2d({
+        kernelSize:5,
+        filters: 16,
+        activation: 'relu',
+        kernelInitializer: 'varianceScaling'
+    }));
+    model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+    
+    // Flatten output from the 2D filters into a 1D vector
+    model.add(tf.layers.flatten());
+
+    // output Dense
+    const NUM_OUTPUT_CLASSES = 4;
+    model.add(tf.layers.dense({
+        units: NUM_OUTPUT_CLASSES,
+        kernelInitializer: 'varianceScaling',
+        activation: 'softmax'
+    }));
+
+    // Training hyperparameters
+    const learningRate = 0.00008;
+    const epochs = 50;
+      
+    const optimizer = tf.train.adam(learningRate);
+    model.compile({
+    optimizer: optimizer,
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy'],
+    });
+
+    // const BATCH_SIZE = 512;
+    // const TRAIN_DATA_SIZE = 5500;
+    // const TEST_DATA_SIZE = 1000;
+  
+    // const [trainXs, trainYs] = tf.tidy(() => {
+    //   const d = data.nextTrainBatch(TRAIN_DATA_SIZE);
+    //   return [
+    //     d.xs.reshape([TRAIN_DATA_SIZE, 28, 28, 1]),
+    //     d.labels
+    //   ];
+    // });
+  
+    // const [testXs, testYs] = tf.tidy(() => {
+    //   const d = data.nextTestBatch(TEST_DATA_SIZE);
+    //   return [
+    //     d.xs.reshape([TEST_DATA_SIZE, 28, 28, 1]),
+    //     d.labels
+    //   ];
+    // });
+
+    const xt = xTrain.reshape([xTrain.shape[0], 28, 28, 1]);
+    const xv = xValid.reshape([xValid.shape[0], 28, 28, 1]);
+
+    const history = await model.fit(xt, yTrain,
+        {   epochs: epochs, 
+            validationData: [xv, yValid],
+            shuffle: true,
+            callbacks: {
+                onEpochEnd: async (epochs, logs) => {
+                    console.log("Epoch" + epochs + "\nAccuracy:" + logs.acc);
+                    await tf.nextFrame();
+                },
+            }
+        }
+    );
+    return model;
+
+
 }
 
 async function trainModelMLP(xTrain, yTrain, xValid, yValid) {

@@ -1,0 +1,46 @@
+Accuracy: 0.9245833
+
+
+
+model.add(tf.layers.conv2d({
+        inputShape: [IMAGE_WIDTH, IMAGE_HEIGHT, CHANNELS],
+        kernelSize:5,
+        filters: 8,
+        strides: 1,
+        activation: 'relu',
+        kernelInitializer: 'varianceScaling'
+    }));
+
+    // MaxPooling Layer 
+    model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+
+    // Second Layer with Max Pooling
+    model.add(tf.layers.conv2d({
+        kernelSize:5,
+        filters: 16,
+        activation: 'relu',
+        kernelInitializer: 'varianceScaling'
+    }));
+    model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+    
+    // Flatten output from the 2D filters into a 1D vector
+    model.add(tf.layers.flatten());
+
+    // output Dense
+    const NUM_OUTPUT_CLASSES = 4;
+    model.add(tf.layers.dense({
+        units: NUM_OUTPUT_CLASSES,
+        kernelInitializer: 'varianceScaling',
+        activation: 'softmax'
+    }));
+
+    // Training hyperparameters
+    const learningRate = 0.00008;
+    const epochs = 50;
+      
+    const optimizer = tf.train.adam(learningRate);
+    model.compile({
+    optimizer: optimizer,
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy'],
+    });
