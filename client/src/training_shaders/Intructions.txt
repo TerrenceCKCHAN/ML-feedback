@@ -13,6 +13,34 @@ No specular component
 vertexShader and fragmentShader 3 are in class 3 ->
 No diffuse component
 
+fragmentShader 4 ->
+Did not normalize the lightVector(l) before n dot l
+
+fragmentShader 5 ->
+reflect(-l, n) becomes reflect(l, n)
+
+fragmentShader 6 ->
+vec3 v = normalize(-vertexPosition) becomes normalize(vertexPosition)
+
+fragmentShader 7 ->
+vec3 v = normalize(-vertexPosition) becomes -vertexPosition
+
+fragmentShader 8 -> switch pow rDotV and nDotL
+gl_FragColor = 
+vec4(
+ka * ambientColour + 
+kd * pow(rDotV, shininess) * diffuseColour +
+ks * nDotL * specularColour
+, 1.0);
+
+fragmentShader 9 -> invert ambientColour and fragmentColour
+gl_FragColor = 
+vec4(
+ka * specularColour + 
+kd * nDotL * diffuseColour +
+ks * pow(rDotV, shininess) * ambientColour
+, 1.0);
+
 
 #Extend
 No Ambient,

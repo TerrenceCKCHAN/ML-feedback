@@ -89,8 +89,9 @@
                 
                 gl_FragColor = 
                 vec4(
-                ka * ambientColour + 
-                ks * pow(rDotV, shininess) * specularColour
+                ka * specularColour + 
+                kd * nDotL * diffuseColour +
+                ks * pow(rDotV, shininess) * ambientColour
                 , 1.0);
             }
         </script>
@@ -221,27 +222,25 @@
             
             //////////////////////////////////////////////////////////////////////////////////////////////
             // Animation loop, reload model in each frame
-            var i = 0;
-            function animate() {
-                requestAnimationFrame( animate );
-                loadModels(i, "1");
-                ++i;
-                // loadUserGLSLFiles();
-            }
-            animate();
+            // var i = 0;
+            // function animate() {
+            //     requestAnimationFrame( animate );
+            //     loadUserGLSLFiles();
+            // }
+            // animate();
             
             
             
             
             
             // Animation loop for generating training data
-            // var i = 0;
-            // function animate() {
-            //     requestAnimationFrame( animate );
-            //     loadModels(i,"1");
-            //     ++i;
-            // }
-            // animate();
+            var i = 0;
+            function animate() {
+                requestAnimationFrame( animate );
+                loadModels(i,"1");
+                ++i;
+            }
+            animate();
 
  
             ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,7 +274,7 @@
             function generateTrainingData() {
                 var imageData = renderer.domElement.toDataURL("image/png")
                                 .replace("image/png", "image/octet-stream");
-                // postImage(imageData);
+                postImage(imageData);
             }
             // API to postImage to server
             function postImage(image) {

@@ -18,7 +18,7 @@ app.post("/post", (req, res) => {storeTrainingData(req.body);res.send("Created t
 
 var trainingSize = 1000;
 var trainingId = 0;
-var trainingClass = 3;
+var trainingClass = 9;
 // Store all training data from front end
 function storeTrainingData(body) {
     console.log(trainingId);
@@ -36,7 +36,7 @@ function handlePhoto(body) {
     var stream = parsePhoto(Object.keys(body)[0]);
     // console.log(stream);
     var buf = new Buffer.from(stream, 'base64');
-    fs.writeFile('./training_data/class_' + trainingClass + '/training_' + trainingId + '.png', buf, (err) => {
+    fs.writeFile('./training_data/exp3/raw/class_' + trainingClass + '/training_' + trainingId + '.png', buf, (err) => {
         if (err) {console.log(err);} else {console.log("Success")}
     })
 }
@@ -137,7 +137,7 @@ const NUM_CLASSES = 4;
 
 
 
-model_and_predict();
+// model_and_predict();
 function model_and_predict() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(0.4, teapotData))
