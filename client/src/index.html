@@ -53,7 +53,7 @@
             vec3 ambientColour;
             vec3 diffuseColour;
             vec3 specularColour;
-            
+
 
             float rnd(float seed) {
                 seed = (mod(seed * 1364.0 + 626.0, 509.0));
@@ -74,7 +74,7 @@
                 specularColour = vec3(1,1,1);
 
 
-                vec4 lightPosition = vec4(6,2,3,0);
+                vec4 lightPosition = vec4(10.0 * change_sign(seedX),5.0 * rnd(seedX + 1.0),10.0 + 5.0*rnd(seedX),0);
                 vec4 lPos_camSpace = pMatrix * mvMatrix * lightPosition;
                 vec4 fragPos_camSpace = pMatrix * mvMatrix * gl_FragCoord;
                 // Diffuse Component
@@ -89,9 +89,8 @@
                 
                 gl_FragColor = 
                 vec4(
-                ka * vec3(0,0,0) + 
-                kd * nDotL * vec3(0.5,0,0) +
-                ks * pow(rDotV, shininess) * vec3(1,1,1)
+                ka * ambientColour + 
+                ks * pow(rDotV, shininess) * specularColour
                 , 1.0);
             }
         </script>
@@ -172,15 +171,7 @@
 
             //////////////////////////////////////////////////////////////////////////////////////////
             //Generating Training data
-            // Load shader files -> load shader materials -> render and generate training data
-            function loadAll() {
-                var fileLoader = new THREE.FileLoader(fileManager);
-                var fileManager = new THREE.LoadingManager(loadModels);
-                fileLoader.load("./training_shaders/vertexShader" + "" + ".txt", function(vShader) {
-                    fileLoader.load("./training_shaders/fragmentShader" + "" + ".txt", function(fShader) {loadModels(vShader, fShader)});
-                }); 
-            }
-            
+            // Load shader files -> load shader materials -> render and generate training data            
 
             //For generating training data
             function loadModels(vShader, fShader) {
@@ -230,9 +221,12 @@
             
             //////////////////////////////////////////////////////////////////////////////////////////////
             // Animation loop, reload model in each frame
+            var i = 0;
             function animate() {
                 requestAnimationFrame( animate );
-                loadUserGLSLFiles();
+                loadModels(i, "1");
+                ++i;
+                // loadUserGLSLFiles();
             }
             animate();
             

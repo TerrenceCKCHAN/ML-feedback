@@ -57,9 +57,9 @@ const jimp = require('jimp');
 
 
 async function preprocessPhoto(c, t_id) {
-    let imgRaw = 'training_data/raw/class_' + c + '/training_' + t_id + '.png';
-    let imgActive = 'training_data/active/class_' + c + '/training_' + t_id + '.png';
-    let imgExported = 'training_data/export/class_' + c + '/training_' + t_id + '.png';
+    let imgRaw = 'training_data/exp2/raw/class_' + c + '/training_' + t_id + '.png';
+    let imgActive = 'training_data/exp2/active/class_' + c + '/training_' + t_id + '.png';
+    let imgExported = 'training_data/exp2/export/class_' + c + '/training_' + t_id + '.png';
 
     await jimp.read(imgRaw)
     .then(img => (img.clone().write(imgActive)))
@@ -67,8 +67,8 @@ async function preprocessPhoto(c, t_id) {
     .then(img => {return img.resize(100,100);})
     .then(img => {return img.crop(35,50,30,23);})
     .then(img => img.resize(28,28))
-    .then(img => img.normalize())
-    .then(img => img.grayscale())
+    // .then(img => img.normalize())
+    // .then(img => img.grayscale())
     .then(img => img.write(imgExported))
     .then(() => console.log('Exported file to: ' + imgExported))
     .catch((err) => {console.error(err); preprocessPhoto(c, t_id)});
@@ -83,8 +83,6 @@ async function preprocessPhotos(c) {
     }
 }
 
-// preprocessPhoto(0,535);
-// preprocessPhoto(0,533);
 // preprocessAll();
 async function preprocessAll() {
     await preprocessPhotos(0);
@@ -157,9 +155,9 @@ async function convertImageToData() {
     const TZ = Array.from(Array(1000).keys());
     for (const c of NC) {
         for(const id of TZ) {
-            const image = await loadImage('training_data/export/class_'+c+'/training_'+id+'.png');
+            const image = await loadImage('training_data/exp2/export/class_'+c+'/training_'+id+'.png');
             cx.drawImage(image, 0, 0);
-            const tensorObj = tf.browser.fromPixels(canvas, 1);
+            const tensorObj = tf.browser.fromPixels(canvas, 3);
             const values = tensorObj.dataSync();
             const arr = Array.from(values);
             arr.push(c);
@@ -180,7 +178,9 @@ async function loadModel() {
 
 async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
     model = await trainModelCNN(xtrain, ytrain, xvalid, yvalid);
-    const saveModel = await model.save('file://./models/model-cnn');
+    model.summary;
+    // const saveModel = await model.save('file://./models/model-cnn2');
+
     
     // // Generate predictions using test sets
     // // Tensors of predictions
@@ -218,7 +218,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid) {
     const model = tf.sequential();
     const IMAGE_WIDTH = 28;
     const IMAGE_HEIGHT = 28;
-    const CHANNELS = 1;
+    const CHANNELS = 3;
     
     // First layer
     model.add(tf.layers.conv2d({
@@ -254,7 +254,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid) {
     }));
 
     // Training hyperparameters
-    const learningRate = 0.00008;
+    const learningRate = 0.00009;
     const epochs = 50;
       
     const optimizer = tf.train.adam(learningRate);
@@ -284,8 +284,8 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid) {
     //   ];
     // });
 
-    const xt = xTrain.reshape([xTrain.shape[0], 28, 28, 1]);
-    const xv = xValid.reshape([xValid.shape[0], 28, 28, 1]);
+    const xt = xTrain.reshape([xTrain.shape[0], 28, 28, 3]);
+    const xv = xValid.reshape([xValid.shape[0], 28, 28, 3]);
 
     const history = await model.fit(xt, yTrain,
         {   epochs: epochs, 
