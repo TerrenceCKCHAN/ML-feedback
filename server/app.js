@@ -16,9 +16,9 @@ app.get('/terrence', (req, res) => res.send("hi noel"))
 
 app.post("/post", (req, res) => {storeTrainingData(req.body);res.send("Created training data: " + trainingId)}) 
 
-var trainingSize = 1000;
+var trainingSize = 500;
 var trainingId = 0;
-var trainingClass = 9;
+var trainingClass = '5-10';
 // Store all training data from front end
 function storeTrainingData(body) {
     console.log(trainingId);
@@ -27,7 +27,7 @@ function storeTrainingData(body) {
     }
     if (trainingId < trainingSize) {
         // parse and save photo to the server
-        // handlePhoto(body);
+        handlePhoto(body);
         trainingId += 1;
     }
 }
@@ -36,7 +36,7 @@ function handlePhoto(body) {
     var stream = parsePhoto(Object.keys(body)[0]);
     // console.log(stream);
     var buf = new Buffer.from(stream, 'base64');
-    fs.writeFile('./training_data/exp3/raw/class_' + trainingClass + '/training_' + trainingId + '.png', buf, (err) => {
+    fs.writeFile('./training_data/exp4/raw/class_' + trainingClass + '/training_' + trainingId + '.png', buf, (err) => {
         if (err) {console.log(err);} else {console.log("Success")}
     })
 }
@@ -57,15 +57,16 @@ const jimp = require('jimp');
 
 
 async function preprocessPhoto(c, t_id) {
-    let imgRaw = 'training_data/exp2/raw/class_' + c + '/training_' + t_id + '.png';
-    let imgActive = 'training_data/exp2/active/class_' + c + '/training_' + t_id + '.png';
-    let imgExported = 'training_data/exp2/export/class_' + c + '/training_' + t_id + '.png';
+    let imgRaw = 'training_data/exp4/raw/class_' + c + '/training_' + t_id + '.png';
+    let imgActive = 'training_data/exp4/active/class_' + c + '/training_' + t_id + '.png';
+    let imgExported = 'training_data/exp4/export/class_' + c + '/training_' + t_id + '.png';
 
     await jimp.read(imgRaw)
     .then(img => (img.clone().write(imgActive)))
     .then(() => jimp.read(imgActive))
+    .then(img => {return img.crop(350,220,500,290);})
     .then(img => {return img.resize(100,100);})
-    .then(img => {return img.crop(35,50,30,23);})
+    // .then(img => {return img.crop(20,35,60,45);})
     .then(img => img.resize(28,28))
     // .then(img => img.normalize())
     // .then(img => img.grayscale())
@@ -85,10 +86,16 @@ async function preprocessPhotos(c) {
 
 // preprocessAll();
 async function preprocessAll() {
-    await preprocessPhotos(0);
+    // await preprocessPhotos(0);
     await preprocessPhotos(1);
     await preprocessPhotos(2);
     await preprocessPhotos(3);
+    await preprocessPhotos(4);
+    await preprocessPhotos(5);
+    await preprocessPhotos(6);
+    await preprocessPhotos(7);
+    await preprocessPhotos(8);
+    await preprocessPhotos(9);
     console.log("Complete");
 }
 
@@ -133,7 +140,7 @@ const tf = require('@tensorflow/tfjs-node');
 const util = require('util');
 const {createCanvas, loadImage} = require('canvas');
 const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-diffuse'];
-const NUM_CLASSES = 4;
+const NUM_CLASSES = 10;
 
 
 
@@ -151,11 +158,11 @@ async function convertImageToData() {
     var dataArray = [];
     const canvas = createCanvas(28,28);
     const cx = canvas.getContext('2d');
-    const NC = [0,1,2,3];
+    const NC = [0,1,2,3,4,5,6,7,8,9];
     const TZ = Array.from(Array(1000).keys());
     for (const c of NC) {
         for(const id of TZ) {
-            const image = await loadImage('training_data/exp2/export/class_'+c+'/training_'+id+'.png');
+            const image = await loadImage('training_data/exp3/export/class_'+c+'/training_'+id+'.png');
             cx.drawImage(image, 0, 0);
             const tensorObj = tf.browser.fromPixels(canvas, 3);
             const values = tensorObj.dataSync();
@@ -179,7 +186,7 @@ async function loadModel() {
 async function do_teapot(xtrain, ytrain,xvalid,yvalid, xtest, ytest) {
     model = await trainModelCNN(xtrain, ytrain, xvalid, yvalid);
     model.summary;
-    // const saveModel = await model.save('file://./models/model-cnn2');
+    const saveModel = await model.save('file://./models/model-exp3');
 
     
     // // Generate predictions using test sets
@@ -246,7 +253,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid) {
     model.add(tf.layers.flatten());
 
     // output Dense
-    const NUM_OUTPUT_CLASSES = 4;
+    const NUM_OUTPUT_CLASSES = 10;
     model.add(tf.layers.dense({
         units: NUM_OUTPUT_CLASSES,
         kernelInitializer: 'varianceScaling',

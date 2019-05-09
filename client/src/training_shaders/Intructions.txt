@@ -19,6 +19,7 @@ Did not normalize the lightVector(l) before n dot l
 fragmentShader 5 ->
 reflect(-l, n) becomes reflect(l, n)
 
+!! omitted !!
 fragmentShader 6 ->
 vec3 v = normalize(-vertexPosition) becomes normalize(vertexPosition)
 

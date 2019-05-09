@@ -1,0 +1,42 @@
+Class 1 and Class 3:
+n dot l: n not normlized and no diffuse
+
+Class 4 and Class 5:
+n dot l: l is not normalized
+AND
+reflect(-l, n) becomes reflect(l, n)
+
+Class 3, 4, 5:
+no diffuse,
+n dot l: l is not normalized
+reflect(-l, n) becomes reflect(l,n)
+
+Class 3,4,5,9
+no diffuse,
+n dot l: l is not normalized
+reflect(-l, n) becomes reflect(l,n)
+no ambient
+
+Class 1-10
+n is not normalized
+nDotL -> rDotL, rDotv -> nDotv
+
+Class 6-10
+normalize(-vertexPosition): Not normalized
+nDotL -> rDotL, rDotv -> nDotv
+
+Class 2-6-10
+no specular + 6-10
+
+Class 3-10
+no diffuse + mix up ndotl,rdotv
+
+Class 1-3-10
+no normalize n + 3-10
+
+Class 5-10
+reflect -l to l
+mix up ndotl,rdotv
+
+Class 1-5-10
+no nomalize n + 5-10

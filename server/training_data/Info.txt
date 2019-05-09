@@ -1,3 +1,4 @@
 exp1 -> 4 class, grey scale and normalize
 exp2 -> 4 class, 3 colour channel, no normalisation for conv net
 exp3 -> n classes, 3 colour channel
+exp4 -> multi-label classification

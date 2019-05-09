@@ -80,18 +80,21 @@
                 // Diffuse Component
                 vec3 l = normalize(vec3(lightPosition) - vec3(vertexPosition));
                 vec3 n = normalize(normalInterpolation);
+                vec3 v = normalize(-vertexPosition);
+                vec3 r = reflect(-l, n);
                 float nDotL = max(0.0, dot(n,l));
                 // Specular Component
-                vec3 r = reflect(-l, n);
-                vec3 v = normalize(-vertexPosition);
+
+                
                 float rDotV = max(0.0, dot(r, v));
                 
                 
                 gl_FragColor = 
                 vec4(
-                ka * specularColour + 
+                ka * ambientColour + 
                 kd * nDotL * diffuseColour +
-                ks * pow(rDotV, shininess) * ambientColour
+                ks * pow(rDotV, shininess) * specularColour
+
                 , 1.0);
             }
         </script>
@@ -222,7 +225,6 @@
             
             //////////////////////////////////////////////////////////////////////////////////////////////
             // Animation loop, reload model in each frame
-            // var i = 0;
             // function animate() {
             //     requestAnimationFrame( animate );
             //     loadUserGLSLFiles();
@@ -234,11 +236,11 @@
             
             
             // Animation loop for generating training data
-            var i = 0;
+            var i = 10;
             function animate() {
                 requestAnimationFrame( animate );
                 loadModels(i,"1");
-                ++i;
+                // ++i;
             }
             animate();
 
