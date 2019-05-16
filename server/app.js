@@ -426,7 +426,7 @@ function label_to_class(str) {
 
 
 // For Multi-class classification
-model_and_predict();
+// model_and_predict();
 function model_and_predict() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(0.4, teapotData))

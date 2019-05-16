@@ -15,9 +15,39 @@
         <!-- <script src="js/libs/loaders/XLoader.js"></script> -->
         
         
+        <!-- User input -->
+        <textarea rows="30" cols="90" type="x-shader/x-vertex" id="vertexShader" onchange="sendUserGLSL()">
+varying mat4 mvMatrix; 
+varying mat4 pMatrix;
+varying mat3 nMatrix;
+varying vec3 normalInterpolation;
+varying vec3 vertexPosition;
+varying float seedX;
+uniform float seed;
+
+void main() 
+{
+    vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * modelViewPosition;
+    mvMatrix = modelViewMatrix;
+    pMatrix  = projectionMatrix;
+    nMatrix = normalMatrix;
+    normalInterpolation = normalMatrix * normal;
+    vertexPosition = vec3(modelViewPosition) / modelViewPosition.w;
+    seedX = seed;
+}
+        </textarea>
+
+        <script>
+            function sendUserGLSL() {
+                alert("hi");
+            }
+        </script>
 
 
-        <script type="x-shader/x-vertex" id="vertexShader">
+
+
+        <!-- <script type="x-shader/x-vertex" id="vertexShader">
             varying mat4 mvMatrix; 
             varying mat4 pMatrix;
             varying mat3 nMatrix;
@@ -37,7 +67,7 @@
                 vertexPosition = vec3(modelViewPosition) / modelViewPosition.w;
                 seedX = seed;
             }
-        </script>
+        </script> -->
 
         <script type="x-shader/x-fragment" id="fragmentShader">
             varying mat4 mvMatrix;
@@ -92,8 +122,8 @@
                 gl_FragColor = 
                 vec4(
                 ka * ambientColour + 
-                kd * nDotL * diffuseColour +
-                ks * pow(rDotV, shininess) * specularColour
+                kd * rDotV * diffuseColour +
+                ks * pow(nDotL, shininess) * specularColour
 
                 , 1.0);
             }
@@ -192,7 +222,7 @@
             function renderAndPost() {
                 renderer.render( scene, camera );
                 sleep(5);
-                generateTrainingData();
+                // generateTrainingData();
             }
 
 
@@ -236,7 +266,7 @@
             
             
             // Animation loop for generating training data
-            var i = 10;
+            var i = 12;
             function animate() {
                 requestAnimationFrame( animate );
                 loadModels(i,"1");
