@@ -1,0 +1,14 @@
+Class 0: correct phong
+Class 1: n dot l: n is not normalized
+Class 2: no specular
+Class 3: no diffuse
+Class 4: n dot l: l is not normalized
+Class 5: reflect(-l, n) becomes reflect(l, n)
+Class 6: normalize(-vertexPosition): Not normalized
+Class 7: Switch n dot l and r dot v
+Class 8: Switch ambient and specular term
+Extended:
+Class 9: no shininess - ie rDotv power 1
+Class 10: nDotL -> rDotL, rDotv -> nDotv
+
+Class 11: no ambient

@@ -11,7 +11,7 @@ no diffuse,
 n dot l: l is not normalized
 reflect(-l, n) becomes reflect(l,n)
 
-Class 3,4,5,9
+Class 3,4,5,11
 no diffuse,
 n dot l: l is not normalized
 reflect(-l, n) becomes reflect(l,n)
