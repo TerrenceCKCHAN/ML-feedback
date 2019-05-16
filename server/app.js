@@ -151,14 +151,14 @@ const tf = require('@tensorflow/tfjs-node');
 const util = require('util');
 const {createCanvas, loadImage} = require('canvas');
 const CLASSES = ['correct-phong', 'normal-not-normalized', 'no-specular', 'no-diffuse'];
-const NUM_CLASSES = 10;
+const NUM_CLASSES = 9;
 
 
 
 
 
 // For Multi-label classification
-train_model();
+// train_model();
 function train_model() {
     convertImageToDataMultiLabel()
     .then((teapotData) => gen_train_test_data_multi_label(0.4, teapotData))
@@ -426,7 +426,7 @@ function label_to_class(str) {
 
 
 // For Multi-class classification
-// model_and_predict();
+model_and_predict();
 function model_and_predict() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(0.4, teapotData))
@@ -535,7 +535,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid) {
     model.add(tf.layers.flatten());
 
     // output Dense
-    const NUM_OUTPUT_CLASSES = 10;
+    const NUM_OUTPUT_CLASSES = 9;
     model.add(tf.layers.dense({
         units: NUM_OUTPUT_CLASSES,
         kernelInitializer: 'varianceScaling',
