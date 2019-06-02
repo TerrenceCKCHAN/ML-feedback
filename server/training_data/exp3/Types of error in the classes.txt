@@ -1,5 +1,5 @@
 Class 0: correct phong
-Class 1: n dot l: n is not normalized
+Class 1: n dot l: n is not normalized (r dot v)(r = reflect(-l,n))
 Class 2: no specular
 Class 3: no diffuse
 Class 4: n dot l: l is not normalized
@@ -12,3 +12,5 @@ Class 9: no shininess - ie rDotv power 1
 Class 10: nDotL -> rDotL, rDotv -> nDotv
 
 Class x: no ambient
+Need One more class:
+Only Ambient - for demonstration purposes, then + diffuse then + specular
