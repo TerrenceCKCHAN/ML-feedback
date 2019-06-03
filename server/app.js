@@ -64,7 +64,14 @@ function saveGLSL(body) {
     })
 }
 
-const preprocessor = require('./preprocess.js')
+const preprocessor = require('./preprocess.js');
+const mlUtils = require('./mlUtils.js');
+
+// const metrics = mlUtils.calculate_metrics([[7,3,1],[6,10,2],[3,3,9]]);
+// console.log(metrics[0]);
+// console.log(metrics[1]);
+// console.log(metrics[2]);
+// console.log(metrics[3]);
 // preprocessor.process();
 
 // const mlp = require('./mlpModel.js');
