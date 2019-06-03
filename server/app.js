@@ -65,21 +65,49 @@ function saveGLSL(body) {
 }
 
 const preprocessor = require('./preprocess.js')
-preprocessor.process();
+// preprocessor.process();
 
 // const mlp = require('./mlpModel.js');
 // mlp.trainMLP();
 
-// const cnn = require('./cnnModel.js');
-// cnn.trainCNN();
+const cnn = require('./cnnModel.js');
+cnn.trainCNN();
 
 // const multicnn = require('./multi-label-cnnModel.js');
 // multicnn.trainMultiLabelCNN();
 
 
 
+/////////////////////////////JUNK
+
+function tx() {
+    var yy = []
+    
+    const xx = [2,3]
+    yy.push(xx)
+    yy.push(xx)
+    console.log(yy);
+
+    var q,w,e,r;
+    q=w=e=r=Math.round(20/5); 
+    const y = 20-q-w-e-r;
+    console.log(y);
+    console.log(q);
+}
+// tx();
+
+// function hyper(hyperparams) {
+
+//     console.log(hyperparams.x);
+//     console.log(hyperparams.y);
+//     console.log(hyperparams.z);
+// }
+
+// hyper({x:1,y:2,z:3});
 
 
+
+////////////////////////////////////JUNK
 
 
 
