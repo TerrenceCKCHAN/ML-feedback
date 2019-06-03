@@ -41,22 +41,30 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
     yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s) {
     
     const hyperparameters = {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008}
-    var xtrain, ytrain, xvalid, yvalid;
-    xtrain = ytrain = xvalid = yvalid = [];
+    const xtrain = [];
+    const ytrain = [];
+    const xvalid = [];
+    const yvalid = [];
+ 
     const batchSelector = [xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
-        yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s]
+        yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s];
     for (var i = 1; i <= 1; ++i) {
         for (var j = 1; j <= 10; ++j) {
             if (i == j) {
                 xvalid.push(batchSelector[i - 1]);
                 yvalid.push(batchSelector[i - 1 + 10]);
             } else {
-                xtrain.push(batchSelector[i]);
-                xtrain.push(batchSelector[i]);
+                xtrain.push(batchSelector[i - 1]);
+                ytrain.push(batchSelector[i - 1 + 10]);
             }
         }
+        const xt = tf.concat(xtrain, 0);
+        const yt = tf.concat(ytrain, 0);
+        const xv = tf.concat(xvalid, 0);
+        const yv = tf.concat(yvalid, 0);
+        console.log(xt);
         console.log("Okay");
-        model = await trainModelCNN(xtrain, ytrain, xvalid, yvalid, hyperparameters);
+        model = await trainModelCNN(xt, yt, xv, yv, hyperparameters);
     }
 
     // model.summary;
@@ -100,6 +108,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid, hps) {
     const IMAGE_WIDTH = 28;
     const IMAGE_HEIGHT = 28;
     const CHANNELS = 3;
+    console.log(xTrain);
     
     // First layer
     model.add(tf.layers.conv2d({
@@ -200,12 +209,27 @@ function gen_train_test_data(teapotData) {
             targetsByClass[target].push(target);
         }
 
-        var xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
-            yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s;
-        
-        xb1s=xb2s=xb3s=xb4s=xb5s=xb6s=xb7s=xb8s=xb9s=xb10s=
-        yb1s=yb2s=yb3s=yb4s=yb5s=yb6s=yb7s=yb8s=yb9s=yb10s=[];
+        const xb1s = [];
+        const xb2s = [];
+        const xb3s = [];
+        const xb4s = [];
+        const xb5s = [];
+        const xb6s = [];
+        const xb7s = [];
+        const xb8s = [];
+        const xb9s = [];
+        const xb10s = [];
 
+        const yb1s = [];
+        const yb2s = [];
+        const yb3s = [];
+        const yb4s = [];
+        const yb5s = [];
+        const yb6s = [];
+        const yb7s = [];
+        const yb8s = [];
+        const yb9s = [];
+        const yb10s = [];
 
         for (let c = 0; c < NUM_CLASSES; ++c) {
             const [xb1,xb2,xb3,xb4,xb5,xb6,xb7,xb8,xb9,xb10,yb1,yb2,yb3,yb4,yb5,yb6,yb7,yb8,yb9,yb10] = 
@@ -232,26 +256,23 @@ function gen_train_test_data(teapotData) {
             yb9s.push(yb9);
             yb10s.push(yb10);
         }
-
-        console.log(xb1s);
-        console.log(tf.concat(xb1s, 0));
         
         
-        const concatAxis = 1;
+        const concatAxis = 0;
 
 
-        // return [
-        //     tf.concat(xb1s, concatAxis), tf.concat(xb2s, concatAxis),
-        //     tf.concat(xb3s, concatAxis), tf.concat(xb4s, concatAxis), 
-        //     tf.concat(xb5s, concatAxis), tf.concat(xb6s, concatAxis), 
-        //     tf.concat(xb7s, concatAxis), tf.concat(xb8s, concatAxis),  
-        //     tf.concat(xb9s, concatAxis), tf.concat(xb10s, concatAxis), 
-        //     tf.concat(yb1s, concatAxis), tf.concat(yb2s, concatAxis), 
-        //     tf.concat(yb3s, concatAxis), tf.concat(yb4s, concatAxis), 
-        //     tf.concat(yb5s, concatAxis), tf.concat(yb6s, concatAxis), 
-        //     tf.concat(yb7s, concatAxis), tf.concat(yb8s, concatAxis), 
-        //     tf.concat(yb9s, concatAxis), tf.concat(yb10s, concatAxis), 
-        // ];
+        return [
+            tf.concat(xb1s, concatAxis), tf.concat(xb2s, concatAxis),
+            tf.concat(xb3s, concatAxis), tf.concat(xb4s, concatAxis), 
+            tf.concat(xb5s, concatAxis), tf.concat(xb6s, concatAxis), 
+            tf.concat(xb7s, concatAxis), tf.concat(xb8s, concatAxis),  
+            tf.concat(xb9s, concatAxis), tf.concat(xb10s, concatAxis), 
+            tf.concat(yb1s, concatAxis), tf.concat(yb2s, concatAxis), 
+            tf.concat(yb3s, concatAxis), tf.concat(yb4s, concatAxis), 
+            tf.concat(yb5s, concatAxis), tf.concat(yb6s, concatAxis), 
+            tf.concat(yb7s, concatAxis), tf.concat(yb8s, concatAxis), 
+            tf.concat(yb9s, concatAxis), tf.concat(yb10s, concatAxis), 
+        ];
 
 
 
@@ -293,7 +314,7 @@ function convertToTensors(data, targets) {
     //Number of batches
     // bs for batch size, lbs for last batch size
     const bs = Math.round(numExamples / 10);
-    const lbs = numExamples-bs*9;
+    const lbs = numExamples-(bs*9);
 
 
     // const numTestExamples = Math.round(numExamples * testSplit / 2);
