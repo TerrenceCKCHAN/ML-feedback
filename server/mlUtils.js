@@ -23,6 +23,7 @@ function calculate_metric(cMat, c) {
     var tn = 0;
     var fp = 0;
     var fn = 0;
+    var total = 0;
 
     for (let j = 0; j < cMat.length; ++j) {
         for (let i = 0; i < cMat[0].length; ++i) {
@@ -35,17 +36,17 @@ function calculate_metric(cMat, c) {
             } else if (j == c && i != c) {
                 fp += cMat[i][j];
             }
-
+            total += cMat[i][j];
         }
     }
 
 
-    var acc = (tp + tn) / (tp + tn + fp + fn);
+    var acc = (tp + tn) / total;
     var precision = tp / (tp + fp);
     var recall = tp / (tp + fn);
     var f1 = (2 * precision * recall) / (precision + recall);
 
-    if ((tp + tn + fp + fn) == 0){
+    if ((total) == 0){
         acc = 0;
     }
     if ((tp + fp) == 0) {

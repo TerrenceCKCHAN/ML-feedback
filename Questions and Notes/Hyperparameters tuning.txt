@@ -7,11 +7,15 @@ kernel size:
 3,5
 
 stride:
-0,1,2
+1
 
 num of filters: 4, 8
 
-poolSize: 2,3
-poolStrides: 1,2
+poolSize: 2
+poolStrides: 2
 
-learning rate: 0.00002, 0.00004 , 0.00006, 0.00008, 0.00010
+learning rate: 0.00004, 0.00008, 0.00012
+
+
+
+Automated

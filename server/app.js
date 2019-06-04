@@ -87,6 +87,15 @@ cnn.trainCNN();
 
 /////////////////////////////JUNK
 
+// kkk()
+function kkk() {
+    var dd = [0,0,0];
+    for (let x = 1; x < 10; ++x) {
+        dd[0] += 0.002;
+    }
+    console.log(dd);
+}
+
 function tx() {
     var yy = []
     

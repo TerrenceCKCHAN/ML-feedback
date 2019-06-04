@@ -41,108 +41,135 @@ async function convertImageToData() {
 async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
     yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s) {
     
-    const hyperparameters = {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008}
+    const hyperparameters = 
+        [{kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
+        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
+        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
+    ]
 
     const table_of_results = [];
     const batchSelector = [xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
         yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s];
-    for (var i = 9; i < 10; ++i) {
-        const xtrain = [];
-        const ytrain = [];
-        const xvalid = [];
-        const yvalid = [];
-        const xtest  = [];
-        const ytest  = [];
-        for (var j = 0; j < 10; ++j) {
-            if (i == 9 && j == 0) {
-                xtest.push(batchSelector[0]);
-                ytest.push(batchSelector[0 + 10]);
-            }
+    
+    for (var params = 0; params < hyperparameters.length; ++params) {
+        var accumulate_metrics = [0, 0, 0, 0];
+        for (var i = 0; i < 10; ++i) {
+            const xtrain = [];
+            const ytrain = [];
+            const xvalid = [];
+            const yvalid = [];
+            const xtest  = [];
+            const ytest  = [];
+            for (var j = 0; j < 10; ++j) {
+                if (i == 9 && j == 0) {
+                    xtest.push(batchSelector[0]);
+                    ytest.push(batchSelector[0 + 10]);
+                    console.log("Push test" + "i: " + i + "j: " + j);
+                }
 
-            if (i == j) {
-                xvalid.push(batchSelector[j]);
-                yvalid.push(batchSelector[j + 10]);
-                if (i != 9) {
-                    xtest.push(batchSelector[j + 1]);
-                    ytest.push(batchSelector[j + 1 + 10]);
-                    ++j;
+                if (i == j) {
+                    xvalid.push(batchSelector[j]);
+                    yvalid.push(batchSelector[j + 10]);
+                    console.log("Push valid" + "i: " + i + "j: " + j);
+                    if (i != 9) {
+                        xtest.push(batchSelector[j + 1]);
+                        ytest.push(batchSelector[j + 1 + 10]);
+                        console.log("Push test" + "i: " + i + "j: " + j);
+                        ++j;
+                    }
+                } 
+                else {
+                    if (!(i == 9 && j == 0)) {
+                        xtrain.push(batchSelector[j]);
+                        ytrain.push(batchSelector[j + 10]);
+                        console.log("Push train" + "i: " + i + "j: " + j);
+                    }
                 }
-            } 
-            else {
-                if (!(i == 9 && j == 0)) {
-                    xtrain.push(batchSelector[j]);
-                    ytrain.push(batchSelector[j + 10]);
+            }
+            const xt = tf.concat(xtrain, 0);
+            const yt = tf.concat(ytrain, 0);
+            const xv = tf.concat(xvalid, 0);
+            const yv = tf.concat(yvalid, 0);
+            const xtecon = tf.concat(xtest, 0);
+            const ytecon = tf.concat(ytest, 0);
+            const xte = xtecon.reshape([xtecon.shape[0], 28, 28, 3]);
+
+            model = await trainModelCNN(xt, yt, xv, yv, hyperparameters[params]);
+
+            const predictions = await model.predict(xte).argMax(-1);
+            // console.log(predictions);
+            // const predList    = predictions.dataSync();
+            // console.log(predList);
+            // Encode prediction tensors to one hot representation
+            // const predictionsOneHot = tf.oneHot(predictions, 9);
+            const yTruth = tf.argMax(ytecon, axis=1);
+            // const yTruthList = yTruth.dataSync();
+
+            const confusionMatrix = tf.math.confusionMatrix(yTruth, predictions, 9);
+            const confuse1d = confusionMatrix.dataSync();
+            const confuse2d = [];
+            for (let i = 0; i < confuse1d.length / 9; ++i) {
+                const currentRow = [];
+                for (let j = 0; j < 9; ++j) {
+                    currentRow.push(confuse1d[i * 9 + j])
                 }
+                confuse2d.push(currentRow);
+            }
+            
+            // confusionMatrix.print();
+            // console.log(confuse2d);
+
+            const mlUtilsMetrics = mlUtils.calculate_metrics(confuse2d);
+            console.log(mlUtilsMetrics[0]);
+            console.log(mlUtilsMetrics[1]);
+            console.log(mlUtilsMetrics[2]);
+            console.log(mlUtilsMetrics[3]);
+
+            for (let k = 0; k <= 3; ++k) {
+                accumulate_metrics[k] +=  mlUtilsMetrics[k];
             }
         }
-        const xt = tf.concat(xtrain, 0);
-        const yt = tf.concat(ytrain, 0);
-        const xv = tf.concat(xvalid, 0);
-        const yv = tf.concat(yvalid, 0);
-        const xtecon = tf.concat(xtest, 0);
-        const ytecon = tf.concat(ytest, 0);
-        const xte = xtecon.reshape([xtecon.shape[0], 28, 28, 3]);
-
-        model = await trainModelCNN(xt, yt, xv, yv, hyperparameters);
-
-        const predictions = await model.predict(xte).argMax(-1);
-        // console.log(predictions);
-        // const predList    = predictions.dataSync();
-        // console.log(predList);
-        // Encode prediction tensors to one hot representation
-        // const predictionsOneHot = tf.oneHot(predictions, 9);
-        const yTruth = tf.argMax(ytecon, axis=1);
-        // const yTruthList = yTruth.dataSync();
-
-        const confusionMatrix = tf.math.confusionMatrix(yTruth, predictions, 9);
-        const confuse1d = confusionMatrix.dataSync();
-        const confuse2d = [];
-        for (let i = 0; i < confuse1d.length / 9; ++i) {
-            const currentRow = [];
-            for (let j = 0; j < 9; ++j) {
-                currentRow.push(confuse1d[i * 9 + j])
-            }
-            confuse2d.push(currentRow);
-        }
-        
-        confusionMatrix.print();
-        
-        console.log(confuse2d);
-
-        const mlUtilsMetrics = mlUtils.calculate_metrics(confuse2d);
-        console.log(mlUtilsMetrics[0]);
-        console.log(mlUtilsMetrics[1]);
-        console.log(mlUtilsMetrics[2]);
-        console.log(mlUtilsMetrics[3]);
-
-        // // Using tf metrics
-        // const precision = tf.metrics.precision(ytecon, predictionsOneHot).dataSync()[0];
-        // console.log(precision);
-        // const recall = tf.metrics.recall(ytecon, predictionsOneHot).dataSync()[0];
-        // console.log(recall);
-        // const acc = tf.metrics.binaryAccuracy(ytecon, predictionsOneHot).dataSync()[0];
-        // console.log(acc);
-        // console.log('Classification results on Test set: ' +  
-        //             '\nPrecision: ' + precision +
-        //             '\nRecall: ' + recall);   
-
-
-        // Generate predictions using test sets
-        // Tensors of predictions
-        // const predictions = await model.predict(xtest).argMax(-1);
-        // const predList    = predictions.dataSync();
-        // // Encode prediction tensors to one hot representation
-        // const predictionsOneHot = tf.oneHot(predictions, 10);
-        // // Decode ytest from one hot encoding; Still a tensor
-        // const yTruth = tf.argMax(ytest, axis=1);
-        // const yTruthList = yTruth.dataSync();
-
-        // Tells us number of params
-        // model.summary();
-
-
+        const avg_metrics = {accurarcy: accumulate_metrics[0] / 10, 
+                            precision: accumulate_metrics[1] / 10, 
+                            recall: accumulate_metrics[2] / 10,
+                            f1: accumulate_metrics[3] / 10};
+        table_of_results.push(avg_metrics);
+        console.log(table_of_results);
     }
 
+    // // Using tf metrics
+    // const precision = tf.metrics.precision(ytecon, predictionsOneHot).dataSync()[0];
+    // console.log(precision);
+    // const recall = tf.metrics.recall(ytecon, predictionsOneHot).dataSync()[0];
+    // console.log(recall);
+    // const acc = tf.metrics.binaryAccuracy(ytecon, predictionsOneHot).dataSync()[0];
+    // console.log(acc);
+    // console.log('Classification results on Test set: ' +  
+    //             '\nPrecision: ' + precision +
+    //             '\nRecall: ' + recall);   
+
+
+    // Generate predictions using test sets
+    // Tensors of predictions
+    // const predictions = await model.predict(xtest).argMax(-1);
+    // const predList    = predictions.dataSync();
+    // // Encode prediction tensors to one hot representation
+    // const predictionsOneHot = tf.oneHot(predictions, 10);
+    // // Decode ytest from one hot encoding; Still a tensor
+    // const yTruth = tf.argMax(ytest, axis=1);
+    // const yTruthList = yTruth.dataSync();
+
+    // Tells us number of params
+    // model.summary();
 
     // const saveModel = await model.save('file://./models/model-exp3');
 
