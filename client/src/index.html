@@ -99,12 +99,13 @@ void main()
 
 
             void main() {
-                ambientColour = vec3(rnd(rnd(seedX)),rnd(seedX), rnd(rnd(rnd(seedX))));
-                diffuseColour = vec3(rnd(seedX),rnd(rnd(rnd(seedX))), rnd(rnd(seedX)));
+                ambientColour = vec3(1,0,0);
+                diffuseColour = vec3(1,0,0);
                 specularColour = vec3(1,1,1);
 
 
-                vec4 lightPosition = vec4(10.0 * change_sign(seedX),5.0 * rnd(seedX + 1.0),10.0 + 5.0*rnd(seedX),0);
+
+                vec4 lightPosition = vec4(0,0,0,0);
                 vec4 lPos_camSpace = pMatrix * mvMatrix * lightPosition;
                 vec4 fragPos_camSpace = pMatrix * mvMatrix * gl_FragCoord;
                 // Diffuse Component
@@ -122,8 +123,8 @@ void main()
                 gl_FragColor = 
                 vec4(
                 ka * ambientColour + 
-                kd * rDotV * diffuseColour +
-                ks * pow(nDotL, shininess) * specularColour
+                kd * nDotL * diffuseColour +
+                ks * pow(rDotV, shininess) * specularColour
                 , 1.0);
             }
         </script>

@@ -42,18 +42,23 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
     yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s) {
     
     const hyperparameters = 
-        [{kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
-        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
-        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
-        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00004},
-        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
-        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
-        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
-        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
-        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00004},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
+        [{kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00100},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00200},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00300},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00500},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00800},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00900},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00009},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00010},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00011},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.010},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.012},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.015},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.02},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.04},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.06},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.08},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.1}
     ]
 
     const table_of_results = [];
@@ -104,7 +109,7 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
             const xte = xtecon.reshape([xtecon.shape[0], 28, 28, 3]);
 
             model = await trainModelCNN(xt, yt, xv, yv, hyperparameters[params]);
-
+            console.log(model.summary());
             const predictions = await model.predict(xte).argMax(-1);
             // console.log(predictions);
             // const predList    = predictions.dataSync();
@@ -142,9 +147,9 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                             precision: accumulate_metrics[1] / 10, 
                             recall: accumulate_metrics[2] / 10,
                             f1: accumulate_metrics[3] / 10};
-        table_of_results.push(avg_metrics);
-        console.log(table_of_results);
+        table_of_results.push(avg_metrics);        
     }
+    console.log(table_of_results);
 
     // // Using tf metrics
     // const precision = tf.metrics.precision(ytecon, predictionsOneHot).dataSync()[0];
@@ -247,7 +252,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid, hps) {
 
     // Training hyperparameters
     const learningRate = hps.learningRate;
-    const epochs = 1;
+    const epochs = 30;
       
     const optimizer = tf.train.adam(learningRate);
     model.compile({

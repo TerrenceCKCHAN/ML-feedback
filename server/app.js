@@ -77,11 +77,11 @@ const mlUtils = require('./mlUtils.js');
 // const mlp = require('./mlpModel.js');
 // mlp.trainMLP();
 
-const cnn = require('./cnnModel.js');
-cnn.trainCNN();
+// const cnn = require('./cnnModel.js');
+// cnn.trainCNN();
 
-// const multicnn = require('./multi-label-cnnModel.js');
-// multicnn.trainMultiLabelCNN();
+const multicnn = require('./multi-label-cnnModel.js');
+multicnn.trainMultiLabelCNN();
 
 
 
