@@ -99,32 +99,29 @@ void main()
 
 
             void main() {
-                ambientColour = vec3(1,0,0);
-                diffuseColour = vec3(1,0,0);
+                ambientColour = vec3(rnd(rnd(seedX)),rnd(seedX), rnd(rnd(rnd(seedX))));
+                diffuseColour = vec3(rnd(seedX),rnd(rnd(rnd(seedX))), rnd(rnd(seedX)));
                 specularColour = vec3(1,1,1);
 
 
-
-                vec4 lightPosition = vec4(0,0,0,0);
+                vec4 lightPosition = vec4(10.0 * change_sign(seedX),5.0 * rnd(seedX + 1.0),10.0 + 5.0*rnd(seedX),0);
                 vec4 lPos_camSpace = pMatrix * mvMatrix * lightPosition;
                 vec4 fragPos_camSpace = pMatrix * mvMatrix * gl_FragCoord;
                 // Diffuse Component
                 vec3 l = normalize(vec3(lightPosition) - vec3(vertexPosition));
                 vec3 n = normalize(normalInterpolation);
-                vec3 v = normalize(-vertexPosition);
-                vec3 r = reflect(-l, n);
                 float nDotL = max(0.0, dot(n,l));
                 // Specular Component
-
-                
+                vec3 r = reflect(-l, n);
+                vec3 v = normalize(-vertexPosition);
                 float rDotV = max(0.0, dot(r, v));
                 
                 
                 gl_FragColor = 
                 vec4(
                 ka * ambientColour + 
-                kd * nDotL * diffuseColour +
-                ks * pow(rDotV, shininess) * specularColour
+                kd * rDotV * diffuseColour +
+                ks * pow(nDotL, shininess) * specularColour
                 , 1.0);
             }
         </script>
@@ -266,7 +263,7 @@ void main()
             
             
             // Animation loop for generating training data
-            var i = 12;
+            var i = 0;
             function animate() {
                 requestAnimationFrame( animate );
                 loadModels(i,"1");

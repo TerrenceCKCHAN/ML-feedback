@@ -16,7 +16,7 @@ app.get('/terrence', (req, res) => res.send("hi noel"))
 
 app.post("/post", (req, res) => {storeTrainingData(req.body);res.send("Created training data: " + trainingId)}) 
 
-var trainingSize = 500;
+var trainingSize = 1000;
 var trainingId = 0;
 var trainingClass = '7';
 // Store all training data from front end
@@ -36,7 +36,7 @@ function handlePhoto(body) {
     var stream = parsePhoto(Object.keys(body)[0]);
     // console.log(stream);
     var buf = new Buffer.from(stream, 'base64');
-    fs.writeFile('./training_data/exp4/raw/class_' + trainingClass + '/training_' + trainingId + '.png', buf, (err) => {
+    fs.writeFile('./training_data/exp3/raw/class_' + trainingClass + '/training_' + trainingId + '.png', buf, (err) => {
         if (err) {console.log(err);} else {console.log("Success")}
     })
 }
@@ -67,21 +67,16 @@ function saveGLSL(body) {
 const preprocessor = require('./preprocess.js');
 const mlUtils = require('./mlUtils.js');
 
-// const metrics = mlUtils.calculate_metrics([[7,3,1],[6,10,2],[3,3,9]]);
-// console.log(metrics[0]);
-// console.log(metrics[1]);
-// console.log(metrics[2]);
-// console.log(metrics[3]);
 // preprocessor.process();
 
 // const mlp = require('./mlpModel.js');
 // mlp.trainMLP();
 
-// const cnn = require('./cnnModel.js');
-// cnn.trainCNN();
+const cnn = require('./cnnModel.js');
+cnn.trainCNN();
 
-const multicnn = require('./multi-label-cnnModel.js');
-multicnn.trainMultiLabelCNN();
+// const multicnn = require('./multi-label-cnnModel.js');
+// multicnn.trainMultiLabelCNN();
 
 
 

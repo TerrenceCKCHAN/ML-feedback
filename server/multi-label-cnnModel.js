@@ -218,7 +218,7 @@ async function do_teapot_multi_label(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9
             const recall = tf.metrics.recall(ytecon, predictionsOneHot).dataSync()[0];
             console.log('Classification results on Test set: ' +  
                         '\nPrecision: ' + precision +
-                        '\nRecall: ' + recall);    
+                        '\nRecall: ' + recall);
 
 
             for (let k = 0; k <= 3; ++k) {

@@ -2,19 +2,21 @@
 // Resize and apply normalization to training data
 const jimp = require('jimp');
 
-var trainingSize = 500;
+var trainingSize = 1000;
 
 module.exports.process = function() {
-    preprocessAll();
+    preprocessPhotos(7);
+    preprocessPhotos(9);
+    preprocessPhotos(10);
 }
 
 
 
 
 async function preprocessPhoto(c, t_id) {
-    let imgRaw = 'training_data/exp4/raw/class_' + c + '/training_' + t_id + '.png';
-    let imgActive = 'training_data/exp4/active/class_' + c + '/training_' + t_id + '.png';
-    let imgExported = 'training_data/exp4/export/class_' + c + '/training_' + t_id + '.png';
+    let imgRaw = 'training_data/exp3/raw/class_' + c + '/training_' + t_id + '.png';
+    let imgActive = 'training_data/exp3/active/class_' + c + '/training_' + t_id + '.png';
+    let imgExported = 'training_data/exp3/export/class_' + c + '/training_' + t_id + '.png';
 
     await jimp.read(imgRaw)
     .then(img => (img.clone().write(imgActive)))
@@ -25,7 +27,7 @@ async function preprocessPhoto(c, t_id) {
     .then(img => img.resize(28,28))
     // .then(img => img.normalize())
     // .then(img => img.grayscale())
-    // .then(img => img.write(imgExported))
+    .then(img => img.write(imgExported))
     .then(() => console.log('Exported file to: ' + imgExported))
     .catch((err) => {console.error(err); preprocessPhoto(c, t_id)});
     console.log(c+': '+t_id);    

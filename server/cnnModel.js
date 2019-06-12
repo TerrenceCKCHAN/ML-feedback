@@ -1,7 +1,8 @@
 const {createCanvas, loadImage} = require('canvas');
 const tf = require('@tensorflow/tfjs-node');
 const mlUtils = require('./mlUtils.js');
-const NUM_CLASSES = 9;
+const NUM_CLASSES = 11;
+const fs = require('fs')
 
 
 
@@ -22,7 +23,7 @@ async function convertImageToData() {
     var dataArray = [];
     const canvas = createCanvas(28,28);
     const cx = canvas.getContext('2d');
-    const NC = [0,1,2,3,4,5,6,7,8];
+    const NC = [0,1,2,3,4,5,6,7,8,9,10];
     const TZ = Array.from(Array(1000).keys());
     for (const c of NC) {
         for(const id of TZ) {
@@ -42,23 +43,18 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
     yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s) {
     
     const hyperparameters = 
-        [{kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00100},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00200},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00300},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00500},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00800},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00900},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00009},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00010},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00011},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.010},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.012},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.015},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.02},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.04},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.06},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.08},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.1}
+    [{kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
+        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
+        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00004},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
+        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
     ]
 
     const table_of_results = [];
@@ -66,8 +62,9 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
         yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s];
     
     for (var params = 0; params < hyperparameters.length; ++params) {
-        var accumulate_metrics = [0, 0, 0, 0];
+        var accumulate_metrics = [0, 0, 0, 0, 0];
         for (var i = 0; i < 10; ++i) {
+            console.log("This is the " + i + " th fold");
             const xtrain = [];
             const ytrain = [];
             const xvalid = [];
@@ -78,17 +75,17 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                 if (i == 9 && j == 0) {
                     xtest.push(batchSelector[0]);
                     ytest.push(batchSelector[0 + 10]);
-                    console.log("Push test" + "i: " + i + "j: " + j);
+                    // console.log("Push test" + "i: " + i + "j: " + j);
                 }
 
                 if (i == j) {
                     xvalid.push(batchSelector[j]);
                     yvalid.push(batchSelector[j + 10]);
-                    console.log("Push valid" + "i: " + i + "j: " + j);
+                    // console.log("Push valid" + "i: " + i + "j: " + j);
                     if (i != 9) {
                         xtest.push(batchSelector[j + 1]);
                         ytest.push(batchSelector[j + 1 + 10]);
-                        console.log("Push test" + "i: " + i + "j: " + j);
+                        // console.log("Push test" + "i: " + i + "j: " + j);
                         ++j;
                     }
                 } 
@@ -96,7 +93,7 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                     if (!(i == 9 && j == 0)) {
                         xtrain.push(batchSelector[j]);
                         ytrain.push(batchSelector[j + 10]);
-                        console.log("Push train" + "i: " + i + "j: " + j);
+                        // console.log("Push train" + "i: " + i + "j: " + j);
                     }
                 }
             }
@@ -110,7 +107,18 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
 
             model = await trainModelCNN(xt, yt, xv, yv, hyperparameters[params]);
             console.log(model.summary());
+            // const predictions = await model.predict(xte).argMax(-1);
+
+            const score = await model.evaluate(xte, ytecon);
+            console.log("Evaluation: LOSS" + score[0] + "\nACC " + score[1] + "\nPRECIS" + score[2]);
             const predictions = await model.predict(xte).argMax(-1);
+            // const yTruth = tf.argMax(ytecon, axis=1);
+            const predictionsOneHot = tf.oneHot(predictions, 11);
+            const precision = tf.metrics.precision(ytecon, predictionsOneHot).dataSync()[0];
+            const recall = tf.metrics.recall(ytecon, predictionsOneHot).dataSync()[0];
+            console.log('Classification results on Test set: ' +  
+                        '\nPrecision: ' + precision +
+                        '\nRecall: ' + recall);
             // console.log(predictions);
             // const predList    = predictions.dataSync();
             // console.log(predList);
@@ -119,13 +127,13 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
             const yTruth = tf.argMax(ytecon, axis=1);
             // const yTruthList = yTruth.dataSync();
 
-            const confusionMatrix = tf.math.confusionMatrix(yTruth, predictions, 9);
+            const confusionMatrix = tf.math.confusionMatrix(yTruth, predictions, 11);
             const confuse1d = confusionMatrix.dataSync();
             const confuse2d = [];
-            for (let i = 0; i < confuse1d.length / 9; ++i) {
+            for (let i = 0; i < confuse1d.length / 11; ++i) {
                 const currentRow = [];
-                for (let j = 0; j < 9; ++j) {
-                    currentRow.push(confuse1d[i * 9 + j])
+                for (let j = 0; j < 11; ++j) {
+                    currentRow.push(confuse1d[i * 11 + j])
                 }
                 confuse2d.push(currentRow);
             }
@@ -134,22 +142,53 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
             // console.log(confuse2d);
 
             const mlUtilsMetrics = mlUtils.calculate_metrics(confuse2d);
-            console.log(mlUtilsMetrics[0]);
+            // console.log(mlUtilsMetrics[0]);
             console.log(mlUtilsMetrics[1]);
-            console.log(mlUtilsMetrics[2]);
-            console.log(mlUtilsMetrics[3]);
+            // console.log(mlUtilsMetrics[2]);
+            // console.log(mlUtilsMetrics[3]);
 
-            for (let k = 0; k <= 3; ++k) {
-                accumulate_metrics[k] +=  mlUtilsMetrics[k];
-            }
+            //LOSS
+            accumulate_metrics[0] = score[0].dataSync()[0];
+            //Accuracy
+            accumulate_metrics[1] = score[1].dataSync()[0];
+            //Precision
+            accumulate_metrics[2] = precision;
+            //alternative precision
+            accumulate_metrics[4] = mlUtilsMetrics[1];
+            //alternative precision 2
+            accumulate_metrics[5] = score[2].dataSync()[0];
+            //Recall
+            accumulate_metrics[3] = recall;
+            console.log(accumulate_metrics);
+            fs.writeFile("./hyper_results/cnn_tuning_01.txt", accumulate_metrics.toString(), (err) => {
+                if (err) console.log(err);
+                console.log("Successfully Written to File.");
+            });
         }
-        const avg_metrics = {accurarcy: accumulate_metrics[0] / 10, 
-                            precision: accumulate_metrics[1] / 10, 
-                            recall: accumulate_metrics[2] / 10,
-                            f1: accumulate_metrics[3] / 10};
-        table_of_results.push(avg_metrics);        
+        const final_precision = accumulate_metrics[2] / 10;
+        const final_recall = accumulate_metrics[3] / 10;
+        const final_f1 = (2 * final_precision * final_recall) / (final_precision + final_recall);
+        const avg_metrics = {loss: accumulate_metrics[0] / 10,
+                            accuracy: accumulate_metrics[1] / 10, 
+                            precision: final_precision, 
+                            precisionALT: accumulate_metrics[4] / 10,
+                            precisionALT2: accumulate_metrics[5] / 10,
+                            recall: final_recall,
+                            f1: final_f1};
+
+        table_of_results.push(avg_metrics);
+        console.log(table_of_results);
+        fs.writeFile("./hyper_results/cnn_tuning_01.txt", table_of_results.toString(), (err) => {
+            if (err) console.log(err);
+            console.log("Successfully Written to File.");
+        });   
     }
     console.log(table_of_results);
+    fs.writeFile("./hyper_results/cnn_tuning_01.txt", table_of_results.toString(), (err) => {
+        if (err) console.log(err);
+        console.log("FINISH CNN HYPER LOGGING: Successfully Written to File.");
+    });  
+    
 
     // // Using tf metrics
     // const precision = tf.metrics.precision(ytecon, predictionsOneHot).dataSync()[0];
@@ -243,7 +282,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid, hps) {
     model.add(tf.layers.flatten());
 
     // output Dense
-    const NUM_OUTPUT_CLASSES = 9;
+    const NUM_OUTPUT_CLASSES = 11;
     model.add(tf.layers.dense({
         units: NUM_OUTPUT_CLASSES,
         kernelInitializer: 'varianceScaling',
@@ -252,13 +291,13 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid, hps) {
 
     // Training hyperparameters
     const learningRate = hps.learningRate;
-    const epochs = 30;
+    const epochs = 1;
       
     const optimizer = tf.train.adam(learningRate);
     model.compile({
     optimizer: optimizer,
     loss: 'categoricalCrossentropy',
-    metrics: ['accuracy'],
+    metrics: ['accuracy', 'precision'],
     });
 
     const xt = xTrain.reshape([xTrain.shape[0], 28, 28, 3]);
@@ -270,8 +309,8 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid, hps) {
             shuffle: true,
             callbacks: {
                 onEpochEnd: async (epochs, logs) => {
-                    console.log("Epoch" + epochs + "\nAccuracy:" + logs.acc);
-                    console.log();
+                    // console.log("Epoch" + epochs + "\nAccuracy:" + logs.acc);
+                    // console.log();
                     await tf.nextFrame();
                 },
             }
