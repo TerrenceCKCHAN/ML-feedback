@@ -2,7 +2,7 @@
 
 Welcome to Auto teacher v1.0! Auto teacher is an automatic feedback system that integrates computer graphics, machine learning and computer vision, it is designed for the Graphics course C317 at Imperial College London. There are three parts of Auto teacher: Graphics system, ML system and Feedback system.
 
-![Auto teacher](https://https://github.com/TerrenceCKCHAN/Auto-teacher/)
+![Auto teacher](https://github.com/TerrenceCKCHAN/Auto-teacher/blob/master/UIdisplay.png)
 
 ## Getting Started
 The application is separated into the client, which contains the graphics system and the server, which contains the machine learning system and the feedback system. They communicate with each other using HTTP protocol.
