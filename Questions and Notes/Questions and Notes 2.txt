@@ -1,9 +1,0 @@
-Overfit a lot
-Neuro talk tool -> learn from captions
-numerical accuracy certain word that comes up etc.
-
-After classification -> upgrade -> provide unique feedback for students
-permutation on bullet list of permutations -> augmentation
-
-Putting in some NLP text in numbers -> look at the image + code to give sentences + suggestions
-

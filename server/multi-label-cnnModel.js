@@ -3,7 +3,7 @@ const tf = require('@tensorflow/tfjs-node');
 const mlUtils = require('./mlUtils.js');
 const util = require('util');
 
-
+// Multi label CNN experiment cross validation
 module.exports.trainMultiLabelCNN = function() {
     convertImageToDataMultiLabel()
     .then((teapotData) => gen_train_test_data_multi_label(teapotData))
@@ -53,12 +53,6 @@ function gen_train_test_data_multi_label(teapotData) {
             targetsByClass[target].push(target);
         }
 
-        // const xTrains = [];
-        // const yTrains = [];
-        // const xValids  = [];
-        // const yValids  = []
-        // const xTests  = [];
-        // const yTests  = [];
 
         const xb1s = [];
         const xb2s = [];
@@ -85,12 +79,6 @@ function gen_train_test_data_multi_label(teapotData) {
         for (let c = 0; c < 21; ++c) {
             const [xb1,xb2,xb3,xb4,xb5,xb6,xb7,xb8,xb9,xb10,yb1,yb2,yb3,yb4,yb5,yb6,yb7,yb8,yb9,yb10] = 
                 convertToMultiLabelTensors(dataByClass[c], targetsByClass[c]);
-            // xTrains.push(xTrain);
-            // yTrains.push(yTrain);
-            // xValids.push(xValid);
-            // yValids.push(yValid);
-            // xTests.push(xTest);
-            // yTests.push(yTest);
 
             xb1s.push(xb1);
             xb2s.push(xb2);
@@ -116,12 +104,6 @@ function gen_train_test_data_multi_label(teapotData) {
         }
 
         const concatAxis = 0;
-
-        // return [
-        //     tf.concat(xTrains, concatAxis), tf.concat(yTrains, concatAxis),
-        //     tf.concat(xValids, concatAxis), tf.concat(yValids, concatAxis),
-        //     tf.concat(xTests, concatAxis), tf.concat(yTests, concatAxis)
-        // ];
 
         return [
             tf.concat(xb1s, concatAxis), tf.concat(xb2s, concatAxis),
@@ -164,7 +146,7 @@ async function do_teapot_multi_label(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9
     
     for (var params = 0; params < hyperparameters.length; ++params) {
         console.log(hyperparameters[params]);
-        var accumulate_metrics = [0, 0, 0, 0];
+        var accumulate_metrics = [0, 0, 0, 0, 0];
         for (var i = 0; i < 10; ++i) {
             const xtrain = [];
             const ytrain = [];
@@ -176,17 +158,14 @@ async function do_teapot_multi_label(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9
                 if (i == 9 && j == 0) {
                     xtest.push(batchSelector[0]);
                     ytest.push(batchSelector[0 + 10]);
-                    // console.log("Push test" + "i: " + i + "j: " + j);
                 }
 
                 if (i == j) {
                     xvalid.push(batchSelector[j]);
                     yvalid.push(batchSelector[j + 10]);
-                    // console.log("Push valid" + "i: " + i + "j: " + j);
                     if (i != 9) {
                         xtest.push(batchSelector[j + 1]);
                         ytest.push(batchSelector[j + 1 + 10]);
-                        // console.log("Push test" + "i: " + i + "j: " + j);
                         ++j;
                     }
                 } 
@@ -194,7 +173,6 @@ async function do_teapot_multi_label(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9
                     if (!(i == 9 && j == 0)) {
                         xtrain.push(batchSelector[j]);
                         ytrain.push(batchSelector[j + 10]);
-                        // console.log("Push train" + "i: " + i + "j: " + j);
                     }
                 }
             }
@@ -221,12 +199,24 @@ async function do_teapot_multi_label(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9
                         '\nRecall: ' + recall);
 
 
-            for (let k = 0; k <= 3; ++k) {
-                // accumulate_metrics[k] +=  mlUtilsMetrics[k];
-            }
+            accumulate_metrics[0] += score[0].dataSync()[0];
+            accumulate_metrics[1] += score[1].dataSync()[0];
+            // Precision
+            accumulate_metrics[2] += precision;
+            accumulate_metrics[3] += recall;
+            accumulate_metrics[4] += score[2].dataSync()[0]; 
             
         }
-        const avg_metrics = {};
+        const final_pre = accumulate_metrics[2] / 10;
+        const final_rec = accumulate_metrics[3] / 10;
+        const final_f1  = (2 * final_pre * final_rec) / (final_pre + final_rec);
+        const avg_metrics = {Loss: accumulate_metrics[0] / 10,
+                             Accuracy: accumulate_metrics[1] / 10,
+                             Precision: final_pre,
+                             PrecisionALT: accumulate_metrics[4] / 10,
+                             Recall: final_rec,
+                             F1: final_f1}                        
+        
         table_of_results.push(avg_metrics); 
         console.log(table_of_results);
     }
@@ -275,7 +265,7 @@ async function trainModelMultiLabel(xTrain, yTrain, xValid, yValid, hps) {
 
     // Training hyperparameters
     const learningRate = hps.learningRate;
-    const epochs = 30;
+    const epochs = 50;
       
     const optimizer = tf.train.adam(learningRate);
     model.compile({
@@ -314,23 +304,12 @@ function convertToMultiLabelTensors(data, targets) {
 
     const bs = Math.round(numExamples / 10);
     const lbs = numExamples-(bs*9);
-    // const numTestExamples = Math.round(numExamples * testSplit / 2);
-    // const numValidExamples = Math.round(numExamples * testSplit / 2);
-    // const numTrainExamples = numExamples - numValidExamples - numTestExamples;
 
     const xDims = data[0].length;
 
     const xs = tf.tensor2d(data, [numExamples, xDims]);
     const ys = tf.tensor2d(label_to_one_hot(targets));
 
-    // split the data into training and test sets
-    // const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);
-    // const xValid  = xs.slice([numTrainExamples, 0], [numValidExamples, xDims]);
-    // const xTest  = xs.slice([numTrainExamples + numValidExamples, 0], [numTestExamples, xDims]);
-    // const yTrain = ys.slice([0, 0], [numTrainExamples, NUM_MulLabelClasses]);
-    // const yValid  = ys.slice([numTrainExamples, 0], [numValidExamples, NUM_MulLabelClasses]);
-    // const yTest  = ys.slice([numTrainExamples + numValidExamples, 0], [numTestExamples, NUM_MulLabelClasses]);
-    // return [xTrain, yTrain, xValid, yValid, xTest, yTest];
     const xb1  = xs.slice([0,0],[bs,xDims]);
     const xb2  = xs.slice([bs,0],[bs,xDims])
     const xb3  = xs.slice([bs*2,0],[bs,xDims])

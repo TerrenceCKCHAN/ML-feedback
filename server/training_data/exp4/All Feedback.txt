@@ -1,0 +1,51 @@
+Flags:
+Class 0 :
+correct phong shading
+Class 1:
+normal vector not normalized 
+Class 2:
+Incorrect Specular lighting
+Class 3: 
+Incorrect Diffuse lighting
+Class 4:
+Light vector not normalized
+Class 5:
+Light direction vector is reversed
+Class 6:
+Viewing direction vector not normalized
+Class 7:
+diffuse and specular calculations are swapped
+Class 8:
+Ambient term and specular term are swapped
+Class 9:
+Incorrect implementation of shininess
+Class 10:
+diffuse and specular calculations are mixed up
+Class 11:
+Ambient term is missing
+
+Suggestions:
+Class 0:
+Your implementation is correct, congratulations!
+Class 1:
+Seems like the normal vector in specular reflection is not normalized.
+Class 2:
+Try to implement the specular lighting! Get started by looking at the Phong equation.
+Class 3:
+Seems like diffuse lighting is missing, have a look at the phong equation and implement it!
+Class 4:
+Remember to normalize the lighting when using the light vector!
+Class 5:
+Light seems to be appearing from the back of the teapot, the light direction vector probably needs a little fix
+Class 6:
+The viewing vector doesn't seem to be normalized!
+Class 7:
+Did you accidentally put the diffuse calculation in the specular term and did the same the other way round?
+Class 8:
+Look, the specular lighting is coloured! I think you switched the ambient and specular lighting colour
+Class 9:
+It is too shinny! Tune down the specular lighting by including the shininess term in the specular lighting
+Class 10:
+Remember it is the normal and light direction that is involved in the diffuse term, and we use the viewing direction and reflection direction to calculate the specular lighting, don't mix them up!!
+Class 11:
+Hmmm I don't see any ambient lighting, I am pretty sure the diffuse lighting is missing as well otherwise I won't be able to tell the ambient is missing 

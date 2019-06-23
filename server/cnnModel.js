@@ -6,7 +6,7 @@ const fs = require('fs')
 
 
 
-
+// CNN experiement cross validation
 module.exports.trainCNN = function() {
     convertImageToData()
     .then((teapotData) => gen_train_test_data(teapotData))
@@ -43,12 +43,11 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
     yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s) {
     
     const hyperparameters = 
-    [{kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
-        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
-        {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
-        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00004},
-        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
-        {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
+    [
+    // [   {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
+    //     {kernelSize:3, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
+    //     {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00008},
+    //     {kernelSize:3, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00012},
         {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00004},
         {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00008},
         {kernelSize:5, strides: 1, filters: 4, poolSize:2, poolStrides:2, learningRate:0.00012},
@@ -75,17 +74,14 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                 if (i == 9 && j == 0) {
                     xtest.push(batchSelector[0]);
                     ytest.push(batchSelector[0 + 10]);
-                    // console.log("Push test" + "i: " + i + "j: " + j);
                 }
 
                 if (i == j) {
                     xvalid.push(batchSelector[j]);
                     yvalid.push(batchSelector[j + 10]);
-                    // console.log("Push valid" + "i: " + i + "j: " + j);
                     if (i != 9) {
                         xtest.push(batchSelector[j + 1]);
                         ytest.push(batchSelector[j + 1 + 10]);
-                        // console.log("Push test" + "i: " + i + "j: " + j);
                         ++j;
                     }
                 } 
@@ -93,7 +89,6 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                     if (!(i == 9 && j == 0)) {
                         xtrain.push(batchSelector[j]);
                         ytrain.push(batchSelector[j + 10]);
-                        // console.log("Push train" + "i: " + i + "j: " + j);
                     }
                 }
             }
@@ -105,7 +100,7 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
             const ytecon = tf.concat(ytest, 0);
             const xte = xtecon.reshape([xtecon.shape[0], 28, 28, 3]);
 
-            model = await trainModelCNN(xt, yt, xv, yv, hyperparameters[params]);
+            const model = await trainModelCNN(xt, yt, xv, yv, hyperparameters[params]);
             console.log(model.summary());
             // const predictions = await model.predict(xte).argMax(-1);
 
@@ -138,8 +133,6 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                 confuse2d.push(currentRow);
             }
             
-            // confusionMatrix.print();
-            // console.log(confuse2d);
 
             const mlUtilsMetrics = mlUtils.calculate_metrics(confuse2d);
             // console.log(mlUtilsMetrics[0]);
@@ -148,22 +141,18 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
             // console.log(mlUtilsMetrics[3]);
 
             //LOSS
-            accumulate_metrics[0] = score[0].dataSync()[0];
+            accumulate_metrics[0] += score[0].dataSync()[0];
             //Accuracy
-            accumulate_metrics[1] = score[1].dataSync()[0];
+            accumulate_metrics[1] += score[1].dataSync()[0];
             //Precision
-            accumulate_metrics[2] = precision;
+            accumulate_metrics[2] += precision;
             //alternative precision
-            accumulate_metrics[4] = mlUtilsMetrics[1];
+            accumulate_metrics[4] += mlUtilsMetrics[1];
             //alternative precision 2
-            accumulate_metrics[5] = score[2].dataSync()[0];
+            accumulate_metrics[5] += score[2].dataSync()[0];
             //Recall
-            accumulate_metrics[3] = recall;
+            accumulate_metrics[3] += recall;
             console.log(accumulate_metrics);
-            fs.writeFile("./hyper_results/cnn_tuning_01.txt", accumulate_metrics.toString(), (err) => {
-                if (err) console.log(err);
-                console.log("Successfully Written to File.");
-            });
         }
         const final_precision = accumulate_metrics[2] / 10;
         const final_recall = accumulate_metrics[3] / 10;
@@ -178,75 +167,12 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
 
         table_of_results.push(avg_metrics);
         console.log(table_of_results);
-        fs.writeFile("./hyper_results/cnn_tuning_01.txt", table_of_results.toString(), (err) => {
-            if (err) console.log(err);
-            console.log("Successfully Written to File.");
-        });   
     }
     console.log(table_of_results);
     fs.writeFile("./hyper_results/cnn_tuning_01.txt", table_of_results.toString(), (err) => {
         if (err) console.log(err);
         console.log("FINISH CNN HYPER LOGGING: Successfully Written to File.");
-    });  
-    
-
-    // // Using tf metrics
-    // const precision = tf.metrics.precision(ytecon, predictionsOneHot).dataSync()[0];
-    // console.log(precision);
-    // const recall = tf.metrics.recall(ytecon, predictionsOneHot).dataSync()[0];
-    // console.log(recall);
-    // const acc = tf.metrics.binaryAccuracy(ytecon, predictionsOneHot).dataSync()[0];
-    // console.log(acc);
-    // console.log('Classification results on Test set: ' +  
-    //             '\nPrecision: ' + precision +
-    //             '\nRecall: ' + recall);   
-
-
-    // Generate predictions using test sets
-    // Tensors of predictions
-    // const predictions = await model.predict(xtest).argMax(-1);
-    // const predList    = predictions.dataSync();
-    // // Encode prediction tensors to one hot representation
-    // const predictionsOneHot = tf.oneHot(predictions, 10);
-    // // Decode ytest from one hot encoding; Still a tensor
-    // const yTruth = tf.argMax(ytest, axis=1);
-    // const yTruthList = yTruth.dataSync();
-
-    // Tells us number of params
-    // model.summary();
-
-    // const saveModel = await model.save('file://./models/model-exp3');
-
-    
-    // // Generate predictions using test sets
-    // // Tensors of predictions
-    // const predictions = await model.predict(xtest).argMax(-1);
-    // const predList    = predictions.dataSync();
-    // // Encode prediction tensors to one hot representation
-    // const predictionsOneHot = tf.oneHot(predictions, 4);
-    // // Decode ytest from one hot encoding; Still a tensor
-    // const yTruth = tf.argMax(ytest, axis=1);
-    // const yTruthList = yTruth.dataSync();
-    // // Custom code to generating the accuracy
-    // var correct = 0;
-    // var wrong   = 0;
-    // for (var i = 0; i < yTruthList.length; ++i) {
-    //     if (yTruthList[i] == predList[i]) {
-    //         correct++;
-    //     } else {
-    //         wrong++;
-    //     }
-    // }
-    // console.log('Accuracy: ' + correct / yTruthList.length);
-    // console.log('Number of correct:' + correct);
-    // console.log('Number of wrong: ' + wrong);
-    
-    // Using tf metrics
-    // const precision = tf.metrics.precision(ytest, predictionsOneHot).dataSync()[0];
-    // const recall = tf.metrics.recall(ytest, predictionsOneHot).dataSync()[0];
-    // console.log('Classification results on Test set: ' +  
-    //             '\nPrecision: ' + precision +
-    //             '\nRecall: ' + recall);    
+    });    
     
 }
 
@@ -291,7 +217,7 @@ async function trainModelCNN(xTrain, yTrain, xValid, yValid, hps) {
 
     // Training hyperparameters
     const learningRate = hps.learningRate;
-    const epochs = 1;
+    const epochs = 20;
       
     const optimizer = tf.train.adam(learningRate);
     model.compile({
@@ -401,34 +327,6 @@ function gen_train_test_data(teapotData) {
             tf.concat(yb9s, concatAxis), tf.concat(yb10s, concatAxis), 
         ];
 
-
-
-
-
-        // const xTrains = [];
-        // const yTrains = [];
-        // const xValids  = [];
-        // const yValids  = []
-        // const xTests  = [];
-        // const yTests  = [];
-        // for (let c = 0; c < NUM_CLASSES; ++c) {
-        //     const [xTrain,yTrain,xValid,yValid,xTest,yTest] = 
-        //         convertToTensors(dataByClass[c], targetsByClass[c]);
-        //     xTrains.push(xTrain);
-        //     yTrains.push(yTrain);
-        //     xValids.push(xValid);
-        //     yValids.push(yValid);
-        //     xTests.push(xTest);
-        //     yTests.push(yTest);
-        // }
-
-        // const concatAxis = 0;
-
-        // return [
-        //     tf.concat(xTrains, concatAxis), tf.concat(yTrains, concatAxis),
-        //     tf.concat(xValids, concatAxis), tf.concat(yValids, concatAxis),
-        //     tf.concat(xTests, concatAxis), tf.concat(yTests, concatAxis)
-        // ];
     });
 }
 
@@ -444,23 +342,11 @@ function convertToTensors(data, targets) {
     const lbs = numExamples-(bs*9);
 
 
-    // const numTestExamples = Math.round(numExamples * testSplit / 2);
-    // const numValidExamples = Math.round(numExamples * testSplit / 2);
-    // const numTrainExamples = numExamples - numValidExamples - numTestExamples;
-
     const xDims = data[0].length;
 
     const xs = tf.tensor2d(data, [numExamples, xDims]);
     const ys = tf.oneHot(tf.tensor1d(targets).toInt(), NUM_CLASSES);
-    // console.log(ys);
 
-    // split the data into training and test sets
-    // const xTrain = xs.slice([0, 0], [numTrainExamples, xDims]);
-    // const xValid  = xs.slice([numTrainExamples, 0], [numValidExamples, xDims]);
-    // const xTest  = xs.slice([numTrainExamples + numValidExamples, 0], [numTestExamples, xDims]);
-    // const yTrain = ys.slice([0, 0], [numTrainExamples, NUM_CLASSES]);
-    // const yValid  = ys.slice([numTrainExamples, 0], [numValidExamples, NUM_CLASSES]);
-    // const yTest  = ys.slice([numTrainExamples + numValidExamples, 0], [numTestExamples, NUM_CLASSES]);
 
     const xb1  = xs.slice([0,0],[bs,xDims]);
     const xb2  = xs.slice([bs,0],[bs,xDims])
@@ -484,7 +370,6 @@ function convertToTensors(data, targets) {
     const yb9  = ys.slice([bs*8,0],[bs,NUM_CLASSES]);
     const yb10 = ys.slice([bs*9,0],[lbs,NUM_CLASSES]);
 
-    // return [xTrain, yTrain, xValid, yValid, xTest, yTest];
     return[xb1,xb2,xb3,xb4,xb5,xb6,xb7,xb8,xb9,xb10,yb1,yb2,yb3,yb4,yb5,yb6,yb7,yb8,yb9,yb10];
 
 }

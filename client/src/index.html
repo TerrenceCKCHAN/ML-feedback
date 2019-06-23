@@ -2,21 +2,115 @@
 <html>
 	<head>
 		<meta charset=utf-8>
-		<title>The teapot</title>
+        <title>Auto teacher v1.0</title>
+
 		<style>
-			body { margin: 0; }
-			canvas { width: 100%; height: 100% }
-		</style>
-	</head>
-	<body>
-        <h1>Hello</h1>
-        <script src="js/three.js"></script>
-        <script src="js/socket.io-client/dist/socket.io.js"></script>
-        <!-- <script src="js/libs/loaders/XLoader.js"></script> -->
+            body { margin: 0; color: white;}
+            canvas { width: 100%; height: 100% }
+            .flex-container {
+                display: flex;
+                background-color: DodgerBlue;
+            }
+
+            .flex-container > div {
+                background-color: #f1f1f1;
+                margin: 10px;
+                padding: 20px;
+                font-size: 30px;
+            }
+            .row {
+                display: flex;
+            }
+            .column {
+                flex:50%;
+                padding: 5px;
+            }
+            /* ul {
+                list-style-image: url('greensquare.gif');
+            } */
+        </style>
+        <script>
+            function changetext() {
+                var newText = document.fshadform.fragshad.value;
+                document.fshadform.fragshad.value = newText;
+                console.log(document.getElementById("fragmentShader").value);
+            }
+            async function compile() {
+                await changetext();
+                loadModels(i,"1");
+                communicateGLSL();
+            }
+        </script>
+    </head>
+    <!-- Auto teacher UI -->
+	<body style="background-color: black">
         
+            <h2 style="text-align: center">
+                AUTO  TEACHER v1.0
+            </h2>
+            <h2>
+                <p>$$I_{out} = k_{a}I_{a} + k_{d}(\textbf{n} \cdot\textbf{l})I_{d} + k_s(\textbf{r} \cdot \textbf{v})^nI_s$$</p>
+            </h2>
+        <div class="row">
+        <div class="column">
         
-        <!-- User input -->
-        <textarea rows="30" cols="90" type="x-shader/x-vertex" id="vertexShader" onchange="sendUserGLSL()">
+            <h2 style="text-align: center">
+                <div style="padding-right: 50px">
+                Fragment Shader
+                <button type="button" style="float: right;" onclick="compile()">compile</button>
+                <button type="button" style="float: right;">download shader</button>
+                </div>
+            </h2>
+            
+            <div class="row">
+                <form name="fshadform">
+                <textarea name="fragshad" rows="19" cols="70" type="x-shader/x-vertex" id="fragmentShader">
+varying mat4 mvMatrix;
+varying mat4 pMatrix;
+varying mat3 nMatrix;
+varying vec3 normalInterpolation;
+varying vec3 vertexPosition;
+float ka  = 0.3;
+float kd  = 0.6;
+float ks  = 0.9;
+float shininess = 30.0;
+vec3 ambientColour;
+vec3 diffuseColour;
+vec3 specularColour;
+
+void main() {
+    ambientColour = vec3(1,0,0);
+    diffuseColour = vec3(1,0,0);
+    specularColour = vec3(1,1,1);
+
+
+    vec4 lightPosition = vec4(4,2,5,0);
+    // Diffuse Component
+    vec3 l = normalize(vec3(lightPosition) - vec3(vertexPosition));
+    vec3 n = normalize(normalInterpolation);
+    float nDotL = max(0.0, dot(n,l));
+    // Specular Component
+    vec3 r = reflect(-l, n);
+    vec3 v = normalize(-vertexPosition);
+    float rDotV = max(0.0, dot(r, v));
+    
+    
+    gl_FragColor = 
+    vec4(
+    ka * ambientColour + 
+    kd * nDotL * diffuseColour +
+    ks * pow(rDotV, shininess) * specularColour
+    , 1.0);
+}      
+
+                </textarea>
+                </form>
+            </div>
+            <h2 style="text-align: center; padding-right:250px;">
+                Vertex Shader
+            </h2>
+            <div class="row">
+                <textarea rows="4" cols="70" type="x-shader/x-vertex" id="vertexShader" >
 varying mat4 mvMatrix; 
 varying mat4 pMatrix;
 varying mat3 nMatrix;
@@ -36,17 +130,36 @@ void main()
     vertexPosition = vec3(modelViewPosition) / modelViewPosition.w;
     seedX = seed;
 }
-        </textarea>
+                </textarea>
+            </div>
+        </div>
+        <div class="column">
+            <div class="row"></div>
+                <div id="graphics">
+                </div>
+                <div class="row">
+                    <div class="column">
+                        <h3 style="background-color: #061860">Suggestions</h3>
+                        <div name="sug" id="sug"></div>
+                    </div>
+                    <div class="column">
+                        <h3 style="background-color: darkblue">Error Flags</h3>
+                        <ul id="flaglist">
+                            <div name="flag" id="flag"></div>                                              
+                        </ul>  
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script src="js/three.js"></script>
+        <script src="js/socket.io-client/dist/socket.io.js"></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML' async></script>
+        <!-- <script src="js/libs/loaders/XLoader.js"></script> -->
 
-        <script>
-            function sendUserGLSL() {
-                alert("hi");
-            }
-        </script>
 
 
-
-
+<!-- Shaders for generating training data -->
         <!-- <script type="x-shader/x-vertex" id="vertexShader">
             varying mat4 mvMatrix; 
             varying mat4 pMatrix;
@@ -69,7 +182,7 @@ void main()
             }
         </script> -->
 
-        <script type="x-shader/x-fragment" id="fragmentShader">
+        <!-- <script type="x-shader/x-fragment" id="fragmentShader">
             varying mat4 mvMatrix;
             varying mat4 pMatrix;
             varying mat3 nMatrix;
@@ -124,7 +237,7 @@ void main()
                 ks * pow(nDotL, shininess) * specularColour
                 , 1.0);
             }
-        </script>
+        </script> -->
 
 
 
@@ -135,9 +248,9 @@ void main()
             var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
             var renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true, autoClear: true});
             camera.position.y = 1;
-            camera.position.z = 3;
-            renderer.setSize( window.innerWidth, window.innerHeight );
-            document.body.appendChild( renderer.domElement );
+            camera.position.z = 2.3;
+            renderer.setSize( 500, 500 * 9 / 16 );
+            document.getElementById("graphics").appendChild( renderer.domElement );
 
             /////////////////////////////////////////////////////////////////////////////////////
             
@@ -170,7 +283,8 @@ void main()
 
             function renderUserGLSL() {
                 renderer.render( scene, camera );
-                communicateGLSL();
+                animate();
+                // communicateGLSL();
             }
 
             // Helper
@@ -243,7 +357,7 @@ void main()
                     },
                     // wireframe: true, 
                     vertexShader: document.getElementById('vertexShader').textContent,
-                    fragmentShader: document.getElementById('fragmentShader').textContent,
+                    fragmentShader: document.getElementById('fragmentShader').value,
                     needsUpdate: true,
                 });
             }
@@ -265,11 +379,11 @@ void main()
             // Animation loop for generating training data
             var i = 0;
             function animate() {
-                requestAnimationFrame( animate );
+                // requestAnimationFrame( animate );
                 loadModels(i,"1");
                 // ++i;
             }
-            animate();
+            // animate();
 
  
             ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -278,25 +392,58 @@ void main()
             function communicateGLSL() {
                 var imageData = renderer.domElement.toDataURL("image/png")
                                 .replace("image/png", "image/octet-stream");
-                // connectGLSL(imageData);
+                connectGLSL(imageData);
             }
 
-            //API to connect user glsl console to server
+            // API to connect user glsl console to server
+            // Feedback from server reponse is diplayed accordingly
             function connectGLSL(image) {
                 fetch('http://localhost:3001/glsl', {
-                    mode: "no-cors",
                     method: 'post',
+                    cache: "no-cache",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded"
                     },
                     body: JSON.stringify({image})
                 })
-                .then((res) => console.log("Received User Teapot!"))
+                .then(async (res) => {
+                    var responseData = await res.json();
+                    const sugArr = responseData.feedback.sugArr;
+                    var labelArr = responseData.feedback.labelArr;
+                    
+                    if (labelArr[0] == "correct phong shading") {
+                        document.getElementById("flaglist").style.listStyleImage = "url('greensquare.gif')";
+                    } else {
+                        document.getElementById("flaglist").style.listStyleImage = "url('redsquare.gif')";
+                    }
+                    
+                    // Display feedback suggestion
+                    var sugNode = document.getElementById("sug");
+                    while (sugNode.hasChildNodes()) {
+                        sugNode.removeChild(sugNode.lastChild);
+                    }
+                    var sugDiv = document.createElement("Div");
+                    for (let i = 0; i < sugArr.length; ++i) {
+                        sugDiv.appendChild(document.createTextNode(sugArr[i]));
+                        sugDiv.appendChild(document.createElement("BR"));
+                        sugDiv.appendChild(document.createElement("BR"));
+                    }
+                    document.getElementById("sug").appendChild(sugDiv);
+                    // Display feedback flag
+                    var flagNode = document.getElementById("flag");
+                    while (flagNode.hasChildNodes()) {
+                        flagNode.removeChild(flagNode.lastChild);
+                    }
+                    for (let i = 0; i < sugArr.length; ++i) {
+                        var listNode = document.createElement("LI");
+                        listNode.appendChild(document.createTextNode(labelArr[i]));
+                        flagNode.appendChild(listNode);
+                        flagNode.appendChild(document.createElement("BR"));
+                    }
+
+                })
                 .catch(err => console.error('Caught Error: ' + err))
             }
-            
-            // Abort websocket
-            // var socket = io.connect('http://localhost:3001');
 
 
             // Generate training data and post to server

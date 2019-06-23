@@ -2,11 +2,15 @@ const {createCanvas, loadImage} = require('canvas');
 const tf = require('@tensorflow/tfjs-node');
 const NUM_CLASSES = 4;
 const fs = require('fs')
+const mlUtils = require('./mlUtils.js');
 
+// MLP experiment cross validation
 module.exports.trainMLP = function() {
     convertImageToData()
-    .then((teapotData) => gen_train_test_data(0.4, teapotData))
-    .then(([xtr, ytr, xva,yva,xte, yte]) => do_teapot(xtr,ytr,xva,yva,xte,yte))
+    .then((teapotData) => gen_train_test_data(teapotData))
+    .then(([xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
+        yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s]) => do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
+            yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s))
     // .then((model) => {return model})
     .catch((err)=> console.log(err));
 }
@@ -37,31 +41,23 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
     yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s) {
 
     const hyperparameters = 
-        [{kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00100},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00200},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00300},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00500},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00800},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00900},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00009},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00010},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.00011},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.010},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.012},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.015},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.02},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.04},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.06},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.08},
-        {kernelSize:5, strides: 1, filters: 8, poolSize:2, poolStrides:2, learningRate:0.1}
-    ]
+        [{units:8, learningRate:0.00006},
+        {units:8, learningRate:0.00009},
+        {units:8, learningRate:0.00012},
+        {units:12, learningRate:0.00006},
+        {units:12, learningRate:0.00009},
+        {units:12, learningRate:0.00012},
+        {units:16, learningRate:0.00006},
+        {units:16, learningRate:0.00009},
+        {units:16, learningRate:0.00012},
+        ]
 
     const table_of_results = [];
     const batchSelector = [xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
         yb1s,yb2s,yb3s,yb4s,yb5s,yb6s,yb7s,yb8s,yb9s,yb10s];
     
     for (var params = 0; params < hyperparameters.length; ++params) {
-        var accumulate_metrics = [0, 0, 0, 0];
+        var accumulate_metrics = [0, 0, 0, 0,0,0,0,0];
         for (var i = 0; i < 10; ++i) {
             const xtrain = [];
             const ytrain = [];
@@ -73,17 +69,17 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                 if (i == 9 && j == 0) {
                     xtest.push(batchSelector[0]);
                     ytest.push(batchSelector[0 + 10]);
-                    console.log("Push test" + "i: " + i + "j: " + j);
+                    // console.log("Push test" + "i: " + i + "j: " + j);
                 }
 
                 if (i == j) {
                     xvalid.push(batchSelector[j]);
                     yvalid.push(batchSelector[j + 10]);
-                    console.log("Push valid" + "i: " + i + "j: " + j);
+                    // console.log("Push valid" + "i: " + i + "j: " + j);
                     if (i != 9) {
                         xtest.push(batchSelector[j + 1]);
                         ytest.push(batchSelector[j + 1 + 10]);
-                        console.log("Push test" + "i: " + i + "j: " + j);
+                        // console.log("Push test" + "i: " + i + "j: " + j);
                         ++j;
                     }
                 } 
@@ -91,7 +87,7 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
                     if (!(i == 9 && j == 0)) {
                         xtrain.push(batchSelector[j]);
                         ytrain.push(batchSelector[j + 10]);
-                        console.log("Push train" + "i: " + i + "j: " + j);
+                        // console.log("Push train" + "i: " + i + "j: " + j);
                     }
                 }
             }
@@ -101,13 +97,14 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
             const yv = tf.concat(yvalid, 0);
             const xtecon = tf.concat(xtest, 0);
             const ytecon = tf.concat(ytest, 0);
-            const xte = xtecon.reshape([xtecon.shape[0], 28, 28, 3]);
+            const xte = xtecon.reshape([xtecon.shape[0], 784]);
 
             model = await trainModelMLP(xt, yt, xv, yv, hyperparameters[params]);
             console.log(model.summary());
             // const predictions = await model.predict(xte).argMax(-1);
-
+            console.log("NO")
             const score = await model.evaluate(xte, ytecon);
+            console.log("YES")
             console.log("Evaluation: LOSS" + score[0] + "\nACC " + score[1] + "\nPRECIS" + score[2]);
             const predictions = await model.predict(xte).argMax(-1);
             // const yTruth = tf.argMax(ytecon, axis=1);
@@ -146,28 +143,50 @@ async function do_teapot(xb1s,xb2s,xb3s,xb4s,xb5s,xb6s,xb7s,xb8s,xb9s,xb10s,
             console.log(mlUtilsMetrics[2]);
             console.log(mlUtilsMetrics[3]);
 
-            for (let k = 0; k <= 3; ++k) {
-                accumulate_metrics[k] +=  mlUtilsMetrics[k];
-            }
+            accumulate_metrics[0] += score[0].dataSync()[0];
+            accumulate_metrics[1] += score[1].dataSync()[0];
+            // precision
+            accumulate_metrics[2] += precision; 
+            // precision ALT1
+            accumulate_metrics[3] += score[2].dataSync()[0];
+            // precision ALT2
+            accumulate_metrics[4] += mlUtilsMetrics[1];
+            // recall 
+            accumulate_metrics[5] += recall;
+            // recall ALT
+            accumulate_metrics[6] += mlUtilsMetrics[2];
+            // f1 ALT
+            accumulate_metrics[7] += mlUtilsMetrics[3];
         }
-        const avg_metrics = {accurarcy: accumulate_metrics[0] / 10, 
-                            precision: accumulate_metrics[1] / 10, 
-                            recall: accumulate_metrics[2] / 10,
-                            f1: accumulate_metrics[3] / 10};
-        table_of_results.push(avg_metrics);        
+        const final_precision = accumulate_metrics[2] / 10;
+        const final_recall    = accumulate_metrics[5] / 10;
+        const final_f1        = (2 * final_precision * final_recall) / (final_precision + final_recall);
+
+        const avg_metrics = {Loss: accumulate_metrics[0] / 10,
+                            accuracy: accumulate_metrics[1] / 10, 
+                            precision: final_precision,
+                            PresALT1: accumulate_metrics[3] / 10,
+                            PresALT2: accumulate_metrics[4] / 10, 
+                            recall: final_recall,
+                            recallALT: accumulate_metrics[6] / 10,
+                            f1: final_f1,
+                            f1ALT: accumulate_metrics[7] / 10
+        };
+        table_of_results.push(avg_metrics);
+        console.log(table_of_results);  
     }
     console.log(table_of_results);
     
 }
 
-async function trainModelMLP(xTrain, yTrain, xValid, yValid) {
+async function trainModelMLP(xTrain, yTrain, xValid, yValid, hps) {
     const model = tf.sequential();
-    const learningRate = 0.00008;
+    const learningRate = hps.learningRate;
     const epochs = 50;
     const optimizer = tf.train.adam(learningRate);
     // console.log(util.inspect(xTrain, {maxArrayLength:1}));
     model.add(tf.layers.dense(
-        { units: 10, activation:'relu', inputShape: [xTrain.shape[1]]}
+        { units: hps.units, activation:'relu', inputShape: [xTrain.shape[1]]}
     ));
 
     model.add(tf.layers.dense(
@@ -177,7 +196,7 @@ async function trainModelMLP(xTrain, yTrain, xValid, yValid) {
     model.compile({
         optimizer: optimizer,
         loss: 'categoricalCrossentropy',
-        metrics: ['accuracy', ]
+        metrics: ['accuracy', 'precision']
     });
 
     const history = await model.fit(xTrain, yTrain,

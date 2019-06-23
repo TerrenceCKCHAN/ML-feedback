@@ -1,5 +1,0 @@
-Why only javascript and not python for ML what are the benefits.
-
-How should I write the implementation for the code section 
-because it does looks like the functions are coming from nowhere
-
