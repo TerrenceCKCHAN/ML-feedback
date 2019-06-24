@@ -40,6 +40,15 @@
                 loadModels(i,"1");
                 communicateGLSL();
             }
+            function downloadShader() {
+                const download = document.getElementById("fragmentShader").value;
+                var downloadElem = document.createElement('a');
+                downloadElem.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(download));
+                downloadElem.setAttribute('download', "FragmentShader");
+                document.body.appendChild(downloadElem);
+                downloadElem.click();
+                document.body.removeChild(downloadElem);
+            }
         </script>
     </head>
     <!-- Auto teacher UI -->
@@ -58,7 +67,7 @@
                 <div style="padding-right: 50px">
                 Fragment Shader
                 <button type="button" style="float: right;" onclick="compile()">compile</button>
-                <button type="button" style="float: right;">download shader</button>
+                <button type="button" style="float: right;" onclick="downloadShader()">download shader</button>
                 </div>
             </h2>
             
