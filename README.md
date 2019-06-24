@@ -4,8 +4,12 @@ Welcome to Auto teacher v1.0! Auto teacher is an automatic feedback system that 
 
 ![Auto teacher](https://github.com/TerrenceCKCHAN/Auto-teacher/blob/master/UIdisplay.png)
 
+## How it works
+When a student implements phong shading by writing the glsl code in the fragment shader, we capture the scene rendered in our graphics system and send the image to the server for a prediction. The prediction is done on a pre-trained ML model (A multi-label classification CNN network). Feedback is then generated and displayed based on the classification result of our ML model.
+
+
 ## Getting Started
-The application is separated into the client, which contains the graphics system and the server, which contains the machine learning system and the feedback system. They communicate with each other using HTTP protocol.
+The application is separated into the client, which contains the graphics system, and the server, which contains the machine learning system and the feedback system. They communicate with each other using HTTP protocol.
 
 ### Installing
 
